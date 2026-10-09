@@ -1,0 +1,1309 @@
+<!doctype html><html lang="ja"><head><meta charset=utf8><meta name="theme-color" content="#1F4AC4">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="鋳造在庫">
+<meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>鋳造在庫コンソール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#EDF0F7; --panel:#FFFFFF; --panel-2:#F7F9FD; --sunk:#E4E9F4;
+  --ink:#0D1830; --ink-2:#33415C; --muted:#5D6E8C; --faint:#8A99B5;
+  --line:#D3DCEA; --line-strong:#B9C6DC;
+  --rb:#1F4AC4; --rb-bright:#4169E1; --rb-deep:#0F2A6B; --rb-wash:#E5EBFB; --rb-edge:#C3D0F2;
+  --b0:#B8352A; --b1:#C77416; --b2:#2E7D32; --b3:#0D7A86; --b4:#1B4E8F;
+  --b0-w:#FBE9E7; --b1-w:#FBF1E0; --b2-w:#E8F3E8; --b3-w:#DFF0F2; --b4-w:#E3EBF6;
+  --est:#7C8AA6;
+  --grn-d:#00A848; --grn-l:#8FC04F;
+  --shadow:0 1px 2px rgba(13,24,48,.06), 0 8px 24px -12px rgba(13,24,48,.14);
+  --ja:"Yu Gothic Light","游ゴシック Light",YuGothic,"Yu Gothic","游ゴシック体","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
+  --num:"IBM Plex Sans Condensed","Yu Gothic",Meiryo,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#080D18; --panel:#111A2C; --panel-2:#0D1524; --sunk:#0A1120;
+  --ink:#E7EDF9; --ink-2:#C2CDE3; --muted:#8FA0BF; --faint:#66779A;
+  --line:#22304C; --line-strong:#2E3F62;
+  --rb:#6E90F0; --rb-bright:#8AA8F7; --rb-deep:#B7C9FA; --rb-wash:#16233F; --rb-edge:#2B3E68;
+  --b0:#F0857A; --b1:#E8AC5F; --b2:#6FC073; --b3:#4BC3CC; --b4:#7FA8E8;
+  --b0-w:#2C1614; --b1-w:#2B2113; --b2-w:#132414; --b3-w:#0D2528; --b4-w:#111F35;
+  --est:#7889A8;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --ground:#080D18; --panel:#111A2C; --panel-2:#0D1524; --sunk:#0A1120;
+  --ink:#E7EDF9; --ink-2:#C2CDE3; --muted:#8FA0BF; --faint:#66779A;
+  --line:#22304C; --line-strong:#2E3F62;
+  --rb:#6E90F0; --rb-bright:#8AA8F7; --rb-deep:#B7C9FA; --rb-wash:#16233F; --rb-edge:#2B3E68;
+  --b0:#F0857A; --b1:#E8AC5F; --b2:#6FC073; --b3:#4BC3CC; --b4:#7FA8E8;
+  --b0-w:#2C1614; --b1-w:#2B2113; --b2-w:#132414; --b3-w:#0D2528; --b4-w:#111F35;
+  --est:#7889A8;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ja);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.lbl{font-family:var(--num);font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--faint)}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--rb-bright);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── shell ─────────────────────────────── */
+.wrap{max-width:1420px;margin:0 auto;padding:0 20px 64px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:22px 0 16px}
+.brandline{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:21px;font-weight:600;letter-spacing:.02em;line-height:1.25}
+.sub{font-size:12px;color:var(--muted)}
+.logo{flex:none;height:38px;width:auto;display:block;margin-top:2px}
+@media(max-width:640px){.logo{height:30px}}
+
+/* ── status console ────────────────────── */
+.console{background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow);overflow:hidden}
+.console-grid{display:grid;grid-template-columns:minmax(240px,1.15fr) repeat(3,minmax(120px,.8fr));gap:1px;background:var(--line)}
+.cell{background:var(--panel);padding:14px 18px 15px;min-width:0}
+.cell.hero{background:linear-gradient(160deg,var(--rb-wash),var(--panel) 72%)}
+.big{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.015em;line-height:1;font-size:40px;display:flex;align-items:baseline;gap:6px}
+.big u{font-style:normal;text-decoration:none;font-size:15px;font-weight:600;color:var(--muted)}
+.mid{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:600;font-size:24px;line-height:1.15;letter-spacing:-.01em}
+.cell .lbl{display:block;margin-bottom:7px}
+.note{font-size:11.5px;color:var(--muted);margin-top:5px}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:5px 12px 5px 10px;border-radius:2px;border:1px solid;margin-top:9px}
+.pill b{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.p0{color:var(--b0);background:var(--b0-w);border-color:var(--b0)}
+.p1{color:var(--b1);background:var(--b1-w);border-color:var(--b1)}
+.p2{color:var(--b2);background:var(--b2-w);border-color:var(--b2)}
+.p3{color:var(--b3);background:var(--b3-w);border-color:var(--b3)}
+.p4{color:var(--b4);background:var(--b4-w);border-color:var(--b4)}
+.status-strip{display:flex;align-items:center;gap:10px;padding:8px 18px;background:var(--panel-2);border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--b3);flex:none}
+.dot.wait{background:var(--b1)}.dot.off{background:var(--b0)}
+.spacer{flex:1}
+.pend{font-family:var(--num);font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--b1);border:1px solid var(--b1);background:var(--b1-w);border-radius:2px;padding:1px 6px}
+.pend:empty{display:none}
+.build{font-family:var(--num);font-size:10px;letter-spacing:.1em;color:var(--faint)}
+.pend.stall{color:var(--b0);border-color:var(--b0);background:var(--b0-w)}
+.unit-sw{display:inline-flex;border:1px solid var(--line-strong);border-radius:2px;overflow:hidden}
+.unit-sw button{border:0;background:var(--panel);padding:3px 11px;font-family:var(--num);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+.unit-sw button[aria-pressed="true"]{background:var(--rb);color:#fff}
+
+/* ── tabs ──────────────────────────────── */
+nav{display:flex;gap:2px;margin:22px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{border:0;background:none;padding:10px 17px;font-size:13.5px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;margin-bottom:-1px}
+nav button[aria-selected="true"]{color:var(--rb);border-bottom-color:var(--rb);font-weight:600}
+nav button:hover{color:var(--ink)}
+section[hidden]{display:none!important}
+section{padding-top:22px}
+
+/* ── week board ────────────────────────── */
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.btn{border:1px solid var(--line-strong);background:var(--panel);border-radius:2px;padding:6px 13px;font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.btn:hover{border-color:var(--rb);color:var(--rb)}
+.btn.pri{background:var(--rb);border-color:var(--rb);color:#fff}
+.btn.pri:hover{background:var(--rb-bright);border-color:var(--rb-bright);color:#fff}
+.btn.icon{padding:6px 10px;font-family:var(--num);font-weight:700}
+.wk-title{font-family:var(--num);font-size:16px;font-weight:600;letter-spacing:.01em}
+.wk-title span{color:var(--muted);font-weight:400;font-size:13px;margin-left:8px}
+
+.board{background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow);overflow-x:auto}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:940px}
+table.grid th,table.grid td{border-bottom:1px solid var(--line);padding:0;text-align:right}
+table.grid thead th{background:var(--panel-2);padding:9px 10px;font-family:var(--num);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line-strong);vertical-align:bottom}
+table.grid thead th.rowhead{text-align:left;width:150px;position:sticky;left:0;background:var(--panel-2);z-index:2}
+table.grid thead th.tot{background:var(--sunk);width:112px}
+table.grid thead th em{display:block;font-style:normal;font-size:15px;font-weight:700;color:var(--ink);letter-spacing:0;line-height:1.2}
+table.grid thead th.sat em,table.grid thead th.sat{color:var(--rb)}
+table.grid thead th.sun em,table.grid thead th.sun{color:var(--b0)}
+table.grid thead th.today{background:var(--rb-wash);box-shadow:inset 0 -2px 0 var(--rb)}
+th.rowhead{text-align:left;padding:0 12px;font-size:12.5px;font-weight:500;color:var(--ink-2);position:sticky;left:0;background:var(--panel);z-index:1;border-right:1px solid var(--line)}
+th.rowhead u{text-decoration:none;display:block;font-size:10px;color:var(--faint);font-family:var(--num);letter-spacing:.06em}
+tr.r-prod th.rowhead{font-weight:600;color:var(--ink)}
+tr.r-prod td.inp{background:var(--panel-2)}
+td.inp{padding:3px}
+input.c{width:100%;border:1px solid var(--line);border-radius:2px;background:var(--panel);padding:7px 9px;text-align:right;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:15px;font-weight:500;color:var(--ink)}
+input.c:hover{border-color:var(--rb-edge);background:var(--rb-wash)}
+input.c:focus{outline:0;border-color:var(--rb);box-shadow:0 0 0 3px var(--rb-wash)}
+input.c.est{color:var(--est);font-style:italic;font-weight:400;border-style:dashed}
+input.c.zero{color:var(--faint)}
+input.c.saved{animation:saveflash .9s ease-out}
+@keyframes saveflash{0%{background:var(--b3-w);border-color:var(--b3)}100%{background:var(--panel);border-color:var(--line)}}
+td.locked{padding:9px 10px;font-family:var(--num);font-size:14px;color:var(--faint)}
+td.tot{background:var(--sunk);padding:9px 10px;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600}
+tr.r-stock td,tr.r-stock th.rowhead{border-bottom:0;padding-top:2px;padding-bottom:2px}
+tr.r-stock{border-top:2px solid var(--line-strong)}
+tr.r-stock th.rowhead{background:var(--panel-2);font-weight:600;color:var(--ink)}
+.stk{padding:8px 10px;display:flex;flex-direction:column;align-items:flex-end;gap:1px;border-left:3px solid transparent}
+.stk .v{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:14.5px;font-weight:600}
+.stk .d{font-family:var(--num);font-size:11px;font-weight:600;letter-spacing:.02em}
+.stk.est .v{font-weight:500;font-style:italic}
+.stk .adj{font-family:var(--num);font-size:9.5px;font-weight:600;letter-spacing:.02em;color:var(--b4);white-space:nowrap}
+.stk.forced{box-shadow:inset 0 0 0 1.5px var(--b4)}
+.s0{background:var(--b0-w);border-left-color:var(--b0)}.s0 .d{color:var(--b0)}
+.s1{background:var(--b1-w);border-left-color:var(--b1)}.s1 .d{color:var(--b1)}
+.s2{background:var(--b2-w);border-left-color:var(--b2)}.s2 .d{color:var(--b2)}
+.s3{background:var(--b3-w);border-left-color:var(--b3)}.s3 .d{color:var(--b3)}
+.s4{background:var(--b4-w);border-left-color:var(--b4)}.s4 .d{color:var(--b4)}
+.tagrow{display:flex;gap:6px;justify-content:flex-end;padding:0 10px 8px}
+.tag{font-family:var(--num);font-size:9.5px;font-weight:700;letter-spacing:.1em;padding:1px 5px;border-radius:2px;border:1px solid}
+.tag.fix{color:var(--b2);border-color:var(--b2)}
+.tag.plan{color:var(--est);border-color:var(--line-strong)}
+.tag.act{color:var(--rb);border-color:var(--rb-edge);background:var(--rb-wash)}
+.tag.cnt{color:var(--b4);border-color:var(--b4);background:var(--b4-w)}
+.wknote{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--line);background:var(--panel-2);font-size:12.5px;color:var(--ink-2)}
+.wknote input{flex:1;border:1px solid transparent;background:transparent;border-radius:2px;padding:4px 8px;font-family:inherit;font-size:12.5px;color:var(--ink)}
+.wknote input:hover{border-color:var(--line)}
+.wknote input:focus{outline:0;border-color:var(--rb);background:var(--panel)}
+.hint{font-size:11.5px;color:var(--faint);margin-top:11px;line-height:1.7}
+kbd{font-family:var(--num);font-size:10.5px;font-weight:600;border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:3px;padding:0 4px;color:var(--ink-2)}
+
+/* ── legend ────────────────────────────── */
+.legend{display:flex;gap:0;flex-wrap:wrap;margin:14px 0 0;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--panel)}
+.legend div{flex:1;min-width:132px;padding:8px 12px;border-right:1px solid var(--line);border-left:3px solid transparent}
+.legend div:last-child{border-right:0}
+.legend b{display:block;font-size:12px;font-weight:600}
+.legend s{text-decoration:none;font-family:var(--num);font-size:10.5px;color:var(--muted);letter-spacing:.04em}
+
+/* ── panels / cards ───────────────────── */
+.cards{display:grid;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow)}
+.card>h2{margin:0;padding:13px 18px;font-size:13.5px;font-weight:600;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.card>h2 span{font-family:var(--num);font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.04em}
+.card .body{padding:16px 18px}
+.card .body.flush{padding:0}
+.two{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:1000px){.two{grid-template-columns:1.55fr 1fr}}
+
+svg.chart{display:block;width:100%;height:auto}
+.chart-wrap{padding:8px 6px 2px;overflow-x:auto}
+/* SVG は presentation attribute で var() が解決されないため、色は class で当てる */
+svg.chart text{font-family:var(--num);font-variant-numeric:tabular-nums}
+svg.chart .t-faint{fill:var(--faint)}
+svg.chart .t-muted{fill:var(--muted)}
+svg.chart .t-ink{fill:var(--ink)}
+svg.chart .g-line{stroke:var(--line)}
+svg.chart .g-axis{stroke:var(--line-strong)}
+svg.chart .g-now{stroke:var(--ink);opacity:.55}
+svg.chart .l-stock{stroke:var(--rb);fill:none;stroke-width:2;stroke-linejoin:round}
+svg.chart .l-stock.plan{stroke-dasharray:5 4;opacity:.72}
+svg.chart .m-dot{fill:var(--rb);stroke:var(--panel)}
+svg.chart .m-anchor{fill:var(--panel);stroke:var(--b4)}
+svg.chart .m-jump{stroke:var(--b4)}
+svg.chart .m-theo{fill:none;stroke:var(--est)}
+svg.chart .m-reserve{stroke:var(--ink-2);stroke-dasharray:6 3;opacity:.45}
+svg.chart .bg-b0{fill:var(--b0-w)}svg.chart .bg-b1{fill:var(--b1-w)}svg.chart .bg-b2{fill:var(--b2-w)}
+svg.chart .bg-b3{fill:var(--b3-w)}svg.chart .bg-b4{fill:var(--b4-w)}
+svg.chart .st-b0{stroke:var(--b0)}svg.chart .st-b1{stroke:var(--b1)}svg.chart .st-b2{stroke:var(--b2)}
+svg.chart .st-b3{stroke:var(--b3)}svg.chart .st-b4{stroke:var(--b4)}
+svg.chart .fl-b0{fill:var(--b0)}svg.chart .fl-b1{fill:var(--b1)}svg.chart .fl-b2{fill:var(--b2)}
+svg.chart .fl-b3{fill:var(--b3)}svg.chart .fl-b4{fill:var(--b4)}
+
+table.data{border-collapse:collapse;width:100%;font-size:12.5px}
+table.data th,table.data td{padding:7px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+table.data th{font-family:var(--num);font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);background:var(--panel-2);position:sticky;top:0}
+table.data td.l,table.data th.l{text-align:left}
+table.data td.n{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:13px}
+table.data tbody tr:hover{background:var(--panel-2)}
+table.data tr.now td{background:var(--rb-wash);font-weight:600}
+.scroll{max-height:420px;overflow:auto}
+.chip{display:inline-block;font-family:var(--num);font-size:10px;font-weight:700;letter-spacing:.08em;padding:1px 6px;border-radius:2px;border:1px solid}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);font-size:13px}
+.empty b{display:block;font-size:14px;color:var(--ink);margin-bottom:4px;font-weight:600}
+
+/* ── settings ─────────────────────────── */
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 18px}
+label.f{display:flex;flex-direction:column;gap:5px}
+label.f .lbl{color:var(--muted)}
+label.f input,label.f select{border:1px solid var(--line-strong);background:var(--panel-2);border-radius:2px;padding:7px 10px;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:14px;font-weight:500;color:var(--ink);width:100%}
+label.f input:focus,label.f select:focus{outline:0;border-color:var(--rb);background:var(--panel);box-shadow:0 0 0 3px var(--rb-wash)}
+label.f em{font-style:normal;font-size:11px;color:var(--faint)}
+label.ck{display:flex;align-items:flex-start;gap:9px;font-size:13px;padding:7px 0}
+label.ck input{margin-top:3px;accent-color:var(--rb);width:15px;height:15px;flex:none}
+label.ck u{text-decoration:none;display:block;font-size:11.5px;color:var(--muted)}
+.rowform{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding-top:4px}
+.rowform label.f{flex:1;min-width:120px}
+.divide{border-top:1px solid var(--line);margin:16px -18px;padding-top:16px}
+.callout{border-left:3px solid var(--rb);background:var(--rb-wash);padding:11px 14px;font-size:12.5px;color:var(--ink-2);border-radius:0 2px 2px 0}
+.callout b{color:var(--ink)}
+.prev{margin-top:11px;padding:10px 13px;border:1px dashed var(--line-strong);border-radius:2px;background:var(--panel-2);font-size:12.5px;color:var(--muted);font-family:var(--num);font-variant-numeric:tabular-nums}
+.prev b{font-family:var(--num);font-weight:700}
+.prev .up{color:var(--b3)}.prev .dn{color:var(--b1)}
+.del{border:0;background:none;color:var(--faint);font-family:var(--num);font-size:15px;padding:0 6px;line-height:1}
+.del:hover{color:var(--b0)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--ground);padding:9px 18px;border-radius:3px;font-size:12.5px;box-shadow:0 8px 30px -8px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:50}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="brandline"><h1>鋳造在庫コンソール</h1></div>
+      <div class="sub">生産トン数の日次入力から在庫・在庫日数・納期リスクを自動集計（長期生産予定シート後継）</div>
+    </div>
+    <img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAABgCAYAAABv0GdFAAB1z0lEQVR42u29d5wkVdU+/px7b1WHmdkEuwgmEAXdRZSggISZUcKyiWQPIiqi/EDfV8TwqpjenjYA6mvk/apgwBUQmCZuIjMzqAhIEt1FQFFM4C7s7oQOVXXvPb8/qqqn44QN6Kt99lOf7p2ZrqpbXXWf+5zznHMI/zpGmUxGbNy4kIaHc7r6F5lMxp09e/aezLyvMbwviPYm4KUMng9gDhhpEFxmEAE+A2WAR5n5eYD+apn/wLBPCFa/tdb7/ZVXXjlat3+5ceNGGh4eNgAYbWtb29rWtn88KPxfH0A2mxVDQ0NieHi4AmqLFy9OvPSlL93fWhxhwYeD6bVEeKmUMiWEABGBmaMNAML3zS4PEcDMsNZCa22Y8TdmfgyE+2DxUyn5lytXrtxaDXYAkM/nTfv2alvb2ta2NsBtE7Bt2LCBYiDJZDJuV9fcHpJ0EpiPEULs7bpuBZysteAQxWwEcNTqGkTgF6IfUfjWWgKRICIIIQAA2hgEQbCRGHcD5kZjzK1XXXXVc9WMsg10bWtb29rWBrhpAxsA5HI5CwDvfOdZ+yQS4h0A+qRS+yqlYIyBMYaJyAAgAhEIRETUethcA3D1r1UbM7NlZrbWishgrUXgBxuJeFUQ2B9fc82VP61mdW2ga1vb2ta2NsA1N2bK9PVVGNFZZ511qIU8VxBOTiQSyQjULBFZCpmWCPEsdDNOvE51mBDsql2Xte8ntpgVRoAHBqQUAjoIYIy9m5kvvvrqK68HYAFQNpulGJjb1ra2ta1tbYCrYUDvec97DhbS+SQRnew4DrTWAKCrQS3eGsEtHG4zoJsIwXFLkGO2DSBXBXSIWJ211gopJXEYt3vAwF40cNVV11WNxaItRmlb29rWtn9fgKt2R77rXe96sesm/puEfK/jODIIAo7ZmhCCGoGtEdwmY3IxmIXvufKzGMSaMbh6gKt+tdYaay2kEJKZobW5I4D5zHVXX31fPWi3rW1ta1vb/o0ArhoAzjzrrLMlyc+7bmJBEPggIiOEkCGICVSDWwxszVhcyN5aD3lCSdnMLYkm4GYrr9ZWgZ21sNF7Y4wFMwshpDbGGG0vHhvbkr3llltGu7u7VbX6s21ta1vb2vYvDnDxxH/GGWfsqZzE/7quu9QYA2bWQggVS/2rwU2IWpCLWVwMalOBXD241QpNmrG2WqCrclNWqzZDkLMWbIyx1grlOOT73m+NDj5w3XXX3QlARAdux+ba1ra2tW0HmvxnA9xsNitWrlxp3v3u957suO5Nrpt4vdaBJiKSoUEIASEkpBSV9+Fr/UaV90Si6n0EhFWgWP27iddWDLGeJaKOLaKSa0dEIaxGOzI60EKqBSDxrle/+jX02GMbBgFwJpORGzZsaMfl2ta2trXtX43BZbNZESsM3/Oes76gHPfTEXMyQgg5AVJU9doIQEJUx+CaxeJaDXsi7lbL4iYEJtaGRGuCvdkqNmerXmticQ2b0dpaZjjKEZ5XXmdM8K4bb7zx+XZcrm1ta1vb/sUALp7Yly1bll6wYPeViWTirUEQmIi1iVpgmwnLaq6iBAFUNXSeQLYI5LgG5JpvtUBXDW61720lLmeqgc4YGGu1klIFvv/b8YJ3yi23rNrQjsu1rW1ta9u/CMDF4Hbaaaftmkp13phIJg4P/CAQUjj1bsPmLG4acbgJN+GkA64Gukb1JCYBtlhB2QLcmGGMqQU5Y8LyX8ZoKYTSWj/n++UTV69e/fM2yLWtbW1r2/9xgIvB7W3vec8eacib3YS7fxAEWkqpqmNpE/Ezqvx/uiwuxLU6cUkd0DVjcC2qmDTJfQtBrRrgJt43glzFTRkDnjHQ1hoBSGNMwffLJ69Zs+a2Nsi1rW1ta9v22T9MZJLNZsW3v/1t+453vGNBUjl3Oq67n9a6AdyEEDVikhjsYrFJ+LtqkYmsFZc0e60DQUEEin5H0fuav4l/DjRxfVYnj7dOJG9YWRBVMr0JEMZaS6CEEKJvr71eec8dd9z2++7ubvX000+31ZVta1vb2vZ/h8FlBdDPp5/+ji43kbrLdd2DmoEb0QS41asgY0ZXYW6iRRwuZmzVrK0VAoXltkL2VvW+wuiYYcPCy03YW3V6gG0pMKlhb7Gr0hgYZmitLQHCGDMeBN5b1q5de39beNK2trWtbf93AI4ymYwAgHRn183JRPKYIAi0UkqFgBXK/2Nwqwa2BjdlNdOKgY+q4m5VwNbgpmyGb3UgVwG61qW5GnLe6kEuzPNuBLia99H/jbXQ2hhBLINAbzQmOGzt2rVPVStM29a2trWtbdMz8YJzt2xW5vN5k0x3/r9UInVMEPiBlFKFYCTr1JLNctta5bwJyBq3poSMfyblxFb//+qfx7+LPtf0s82OKxt/NuFKjWOGtbFDEYGzqHaNEkFKIY2xxnGcBSTkjd3dmc5/LNtuW9va1rY2g5vSYuHEO97xrvenOzq+HQRBIKV0qmNqUwNZFQDGDK6avTVzVYbUbYLFRf+foG5ciYdNKi6JmVr0vvJqGcym4q5s3OLfmaZMLuqEEKcOhK/GaCmlKpdL+bVr1/S1RSdta1vb2jYze8FEJplMRq5bt86cfvq7D3RddR0zQwghpZRUD2rVLspaoCNQC+CTLdhV01SDehCs/puW+XR1YFn9Wv++hVV3LKgG0/o/in4qjDGBctzX7vnyvUbuvPP2e9qik7a1rW1t++cDOFq0aBG94Q1vSIDoFsd1X2SthZRSNJbdagV0IgS3KrdeA5BVuReb/U1takGT0l11DFBUqSfRJJ6HakZYATmOfhK+Vte4jH/etHNBDG4xwIXvhTXGkhBv2XPPV66+667bn8lms2J4eLhd0qttbWtb2/4ZAC5WAu732tddlE6nT4hEJbJZTcmp60tWAVcdUNUDXSsG1wrsGoCtST5dPYOrAbjof0Rcx9gmZ3A1IFfL4shay0JKh6154+zZsy7TWmPDhg3tO7dtbWtb2/7RABeD2+mnv/sNypE/YGYb1Zak+hy3apdkM0bXkrnNYGtWWLkZ4FUArR7gmrC2CWhrZtykmWpzkGvG4gAIa4x2HOfFjuMWVq9e9dN2Yea2ta1tbZvadrqKcuHChRw2LrUXK6UEAMQNSqvb3jRWI2lUH1YAqS45uxXwSSkrW/XPpnpf/dmG39e7SJvG9gRIxPE80WSczbeGhPOJlAepjbFSys8sWbLk5fl83sbNYP9RxgyKtyxDcNWWzUKA26rPtrWtbf9YUzubveVyOfP2t7/znal06hCttZFSSppCyFFTgqsiLplQTU43vjad0l3cpERX9UZElTw3IGzaJqrfA4C14AigIET4GytgBUIEiM4p3J+AEAxmASKeFOzsxHvSxljHcTtLpeIFAE7fsGHDTgE4ZlB/P2jRogwhA8wf2lgBqk2bFnAmk7dE4KpCLADAufod5V4opI2AtB8EZMMD90fnVnuObWtb2/7NjHb2vpctW5aaNXvebxIJd09mZimlmCizJZu4JluV4Goea6Mmcbh6sGsFcLUTe2N6QHUCd2Mid+t2ONaYmhQBY+oTvOOfVaUJTKQHTKQM1G/WWrYWxaJ3yPDwHQ9sT5UTZhCQpf6hIdEDYFPPAs4gBK/pfH7gNwtdV85JJApep0zYOSQxh0gkJcBW489eQm5ass/9ozv8rspmBXqGBIYA9A+bSUGMQRjqltP627b9axpnBYaGXhhvx6YFjL521aGKDXZPj0D1zODZHMhIzN9I0/0+dhqD6+7ulsPDw3rWrFlnJpOJvYzWRtSwN9GEuRFa/r7OHUlNhCOtYmuTsbhW4FbN3qr/JjZrbYVpoWrj+FzjZqcVxlbN4pozNp6C2QJgpZSU0s8CWD4TMMvnM2L+/I20qWcB91HehECWYwC2mmwN/OnQlDOid5VwXmS0eTGY9hCK9gDsbmR5vhA8D5YWCIsFxP4ckSTDJP4mgEeEwP3MGLIwh6uyeRrAMHNIRrebpQ11S/QOa+RyFrlofzkA6xYnUE52gikFYQlWMIhLSJbHQbd4QJQ7mIsejkzetoHu32kJn7ORs6VtL7T17uC83WxWoC83owXEzmJwBABnnHFGItBmvesm9qpmb/XMbeK1CXurjoNNopKsBjRZxeyqX2Ngmw6Dq2dvxpjJWVsVczNNmFx1UvfE6wSTq0/6jlmcrmVzbIzRxhgulQqH/fSnP32oGYvLZiHQ0y0AINdidXTlAwft6pB6OSBeBaJ9iXgfAu8F4CUCvKtyKOU6AkIAJADHISQTYZrDlk0BQHy/FHyrYtyZVuLhQyO2dtODB7wynRSXFbaMLznh8MfHo0u9bYDCIOQzomZVvPqk/cA4HNoeAqZ9AewBa+eAkKj6nAcSWyH4r2BsANHdYLoTp9zwTGUV2F5p/2tbFgI5WFy9/FDMTrwO474F085hcoIYSSJ4ZiNOWXUDJvKE/n1t3eIExtzTocgBE8Ny46RLbNHpCoz5P0Xfqg2V76wZnnCWQDmLa09YjqTYA2Vuvk8JwMAgKdLw+NmdwuBi9uZ5+qRkKvkKa62RQsjmjUint4kmeWrNZP2TqSPrWVw9wLVib1HOXuX/8d9Pdq48ZZyRwDytsTNAFggT44UQjuu68P3yeQDO2LhxIzGD8siI9UMbKdc7rHM5WOSGKyf740cOW0AsFrLmA5TA6wHsB7Z7QYq5yaSEVABs2JncBBYmAALfahOwSqYEBANjJbOpSHw3CVqjUs5dx+z98z/Vs8SbHjpg97lz5b3lgrn0xCMeHxsc7FYVBjVTG8hIUN4AeYOBpS9GQp0OS30I7AFIOwKOBAwDJox31kwnhBQEzYGUe0LR4WD8fyjrLbjxpKvh+19EX/6vbZD710c4IAdI+ibSzhvBHMXHd7gPNLwPZyeAZws/BnADBiNvw7+jxc/VqPsmzE/9AL6ZtLg9HAEIPgIAsChDQL5xkdvfLUE5jWtXfBqd7hcAAJ3cnJ9pG34XzxU3AvzWnQJww8PR5Er4TwBcX/y4FtgmgK7CsGYCfJO4Kut/V83g6ip11RRZrhaVxOdlra1xMcb7Y0wISWpdk61Bb4LkNq+UEr03AMJqLwkprRYoe94Wa+3dxpi1lKC7s4PdasOmBZHgY2KyvvLRI16hA3oDsz0cFm9kH692EzTb6ZIQQAhiGtABcyEILAmwAJjC4ahUWgjXlao8rsdMwING2GsJfPuSRb98thrQhoa6JXqAHgzb2361f6qjw7mJmecUffwvAAwNDdvtekiuXLYrutz/grFnI+HMRWAAzwBjgY5WgOFF5CZPEFlGYBhMDDBBirlIq/dD4CRctewd6MvfCc6KyIXVtn8pbMsK5HIWlx23JwS9Fs8VNRi805S9xBbWSgS4LI79/Nte+zg+Jmg5AqsxHmg0EzMSW7hKYNx/DG9dfQ8YFC5om3hwcnmNgRVfRGfiUxj3dWtuzBppJ4nnSr9AUa/A6Wue2+EAF7vM3v72t7+eSBymtUa1cjKc1KvZWxN21QrQ6phYPXObCuSmy+CqXZYxsDUDuenHzuIxocnvUQ2kDMAAkI7jSCUlSuXymNb6Trb2unTa3nX11av+Fp/z4K3h67d/ftgC13EOJctHE/ERXgkLkx0iIaWACUJW5pet9TxjZeg8CTMSaOJGUg6pVIdEuWCgA/65Cew1JNVNy/abYGrMWTE0NCSGhoYtESzzsMnnM6J/PXBIJnn1ggXOwc88XbrmxIMe/tvAQEb2zZQhcYz6eYPrVrwVSn4VCfkyFCww5muA49IyqsbD3nTaqik8ChhmjHoarnwR0s4a5FccCco90Aa5f0HrGRLIgdHhHou0k8J4oEFwdgq8MRhKKpTt39Bh7gcA9OX/L91PO9ad2jtsMNitsImPh29U9Mw2UmcmDVcqBPY2EBj13p7q8MT1J3wNHe6HMeZrMCSaVUVkaMxKJFEK1uF5+zactWYMAxm5wwFu48YQwa3l05MpV2hjNBEpqmoG2mxyn/h5Y+ft6bK4qUQnldeq+a9ylzIqzI0IsJabgmANe5vETdkMrOuZa1WTVMsMFkJIJ5lSZa8Mo809xuirXEeuuvzqn/yp/lwuvvuIfVxHHA3ipUQ41E2IeUoBOrDQnkVxTBsR5jOEjYUIghDeaCHjs5aZRDqtpHIIXkn/tVzU11pDV55y4C9+WQ1qeWygUGFZFbCPGFxfX16vfvSNl3V0ymXP/T1gJlwarnRmPFEQ+kHIweL6E/8HSfVR+AYY9TUAGYIabc9jTAA58E24yvPMD3DJQQcDOT3JQ04DPDCpXyuD9UzTBMjwWi6adBB91GdaXZ8BbPu5ZDkrFk127HweM1mQTLW/DPpaKnKncx1mvLCuPl5PjwWGGcCKyMVCO1EwbpCQEtregRVrirH3YaePcaaklrOiZyjMatq0aUMl3Se+76t/39MDS9uy6IsXi3/v2h8JsS88w03BLWRwAoEBLK9pYL1ZCPRngVzO4NoV30WHew5GfQ2CavgaQ15uMMtVKPg/xq9efyZyORudi9nR3zoB4Ewm40qpNjhuYm8Atlpc0pgi0FpsIqKWN0LKaSVpN/89NTRLrXaNxuBW09+NLbiqM4AxZtJ+bqaJmKS6M0AoPDGwpr6DgLbGWCYiKYRAuVzabI3Na+2t/OEPf/iL+ov7zZ/17u04vFSwPYmZD0t3qAQzIyhbWGuNADMBgsKVARGFlEhQmBIWgigbSaTSXRLat7Ca75GSvy+Me8NJBwxvrXY/Dg0N21zzoC8GuVv10rC+8ZE3XjRrjvqE9bTxSubX99/w4EH9/Q15clODWz4jsD7P2P+EK9CVOA2jZRO6LVoJA9iAiUEcymA4Zr8tVoy1M6xBhysx7p+AvlWr2vG4fyFjhAVhf7B4Pma7T0KK2dDMoJ2FcGyQdiRGvbfibWuux0CdKOofeSmYaWioX/b05MxMgTGM6w+IlguuppNCt0LvsMbAiv/GrEQOYxEoNe7dwpECvvkzdp27D3pXlivfWxYC/ZEv57oVK9GZeGcF3JqxZwGLDleiGPwPTr7xY8hGxUuieWuHMrhMJiNCRZ86SEq1tzHGKqVEvVuw1lWJBrdlNXtDk4al02Fx1ekGsQKzkjQexfnidTsjBrfIR8aAYVuzv2ZsreF8gPo42gSLwwQ7ZWYLgB3Hla4LlMrlJ3Xgf18KXPHd73znb9XX9KLbj57d0RkcT0Snw9o3J5MybQ0hKGsUxwIdlr4kIQTJVu46ZjCIjVRCdXQqVS5ozyuaGyzMJacdcN9QJfTFGZnBwogFtA6SX/LAQU4vDQfX/fKNH+6a7XxibGvgzZkjE17B/L9cDranZ4bikv5uiVxe49oTfoBZidOwtRyAqLlLiRF2oU05EooA34aBZUkUuTwAT9vJQY4YRAzmEwGsapVXM3DPV1Nd84OjCIJCx3H1aVhOdqQoGC9tPXaf8++dzjDXPvalg7tmJ3ctFEpMEFTHA0DKklvu/Gnvfh8Yrzzw0V166zNf6eBxPrL5nG65oyNFxbHS5sX7nn9/dKtyPMkREV//yAX7zF/Qufd4oWirj82wnEw4VPbMyPGv+vgvpjNpEhHf9rsvvSqVTr2y2f5SHQkxvjl4eNl+H382/vt40iQC3/L4ha9Lz0nvXhhtch1mjGeWU8mEGB8Jj3fQpWerB3FpgKQ6CknVhZLxQJBNpnc5LdCrLJyaLucZQhAKwRa4aggAZzMLOQdgh4+x5ppOfL+twAkYEFEcXwPAnU99fV8LfSgbPpDBezPzbgClIqWbT0TPE+GPSsqHrJI/I/rQo0CfYeZoGqapAbJnOL5Oy6Bta+bMZOFKgubbQnCLBGVx7BTdCtfPvQodzlsx5gcgOE0GaSGIkFQS497H8dZVX2mWBrRDAS52TxLx8UopaGMqxT6qgW3CQ9gM5NCyLU2zSiQtwSZSKlaX0ZJVLC6OiVUAzjIIFgaAsAALTNsNWQPKE77HBqAOSSJb13UkQPC88oZA26+7Slz11W9+vVB9Lb/x8+79QHSGgO5zk+plACMoRqCGqBIYSBEmFSkxiI2jhEp1OMor6C3lcXM5YL576oH3PTaxUsuI0AU59cozYm5B/qE3npbuUF8rjOnAccgdHdHPmGLimvDhGp7+qi9kTxoDKz6CWe57sNULwa2ZWWYoQUgoQtncg5K9FoQHwRiDoRR8cwCkOBspZ38UgzDS2PzKCBhLAF5b92CGYxzMqt7enE7PKR+/y65zryuMlSHq8chYzJ6VxDOjpR8CuDf+TLPJhgh8661f6TBkblGO2CWZTNRMeZYBN6EwtrWwtTS+6eUTnhfC4GBW9vbmTLDZP2m3l8y7fGxrCVLWnos2Fp2zkiiMli4GcP/QUFZGrlcA/QSAk0lxSbLD6QkCt+bzlgHXVSiXxscuvzf7kncemhudfAIN96cNfzfV4b45CHRlfxw9g0ZbgO1CAM/2R38fr70uueRsx1rc4Cq1l0m4Ddd1ZhN/eDxrLDSCRQCePegg4EEAcOhMzE4KkJdoii++CRdHNMUBJBFSSrW4H4EuF9hYuBcn3/g8BjKyHzm7xyVnO2ZHj1FbiGiMQJaiHNbGx2kgI8PnuM+se+KL812VeDszv03b4OCOzqSKr5exoZcqnjeFIAglQMB7C2NlvvPp/7mHLf8vEV0NANlsVuRyk7gts5F78tqlr4Kg16OsGSDZYn1JocTfrgrd41Xuzcu6k5g991p0OEsx5gdAC3BTQkCQRdE/E5nVK0P2mDf1oYYdCnA9PT12eHgYAHqjRGhqBCU0Abkql2ELBocm4FYNas2TuuPSXlRXrLmKxcXsrWqBYgAITJ6c3ewcqv20DWIWZqOUlIlEQpZK5ceN1l/ZtPHZK1euXFmuvoZfu6f7aCLxH2yxLJUWjl8yKI0FBgKQDBHGMzFpXHgC2EilO5TyimZjuWgvtYG+5J2H3v+X+EEIzz2S4k/HAzEYuiWvvv/Qo90E/dgvG2sto2u2opHnzPdPPOKescHBbtU7XYl0fFMPnPBauOIijPum5T3JzHAlARiFZ/4Tp9x4RZO/ugcDmR+C/duQdg5HOTBNHzJCmF4gxC645CAH9GBQHYfb1LOIAUAptSLwtSmXAkNUW5icAbv1+XEVBOaK6s80hLYwIIA+4+0RHN7VkdxlZEshiGOhVeejXUcqY/i6pYfmRpkHZKyijfbLUskVXikwnhcYQsO58JZN48K3+idhjGVRNXuztz32pT2s4Dds2TRmrLENK6JyyWflOJ2zZtFCAPfm8+E5t2Bv9roNX9hdEN64edNozf6Y2aY7EsIr+Pcue+35j2WzWZGLYjkDAxnZR3mz+6/3fL2bdF6+9flxje0MjDHYptMJUS75956436c3ZLNZkTs4F2AgIyG93+L54mZoWzdgFgAZMA6BK16NwNYswmt2r4hgeAsKweqW8TeQAxaXA6CzXzFXEMGsfexlr3MTas8dMsbompZL/r1LojG2io+F902fGRjMds59edeHBeE/k+nEbkGgUS75GBspGhAxhawtYnoVMsocsTRiKDcpD1dJefgdf/jKaaOl4D0nL/zU89VsvHHyHwpz2Iw8Hp2u09I9yWAoIVEMnoeiuwEA6zcS+vIG31/RhTniRqSdN2O0xUKX2cCVEsA4AnsqMqvXVVyjTWxHAhzlcjmbyWTmM/A6YyxIRKKG+j+sgBzVqgAIzRuKTsLc6hWRzRmWqMgGpagu7Iwo/mYBy+GtXwdmTQGsRUUUqjvfeJ0HgNLptCyVSps83/uy7xW+89WvfrXADFq5MgK2n/WcwBAfEZKOUorgFTSKo4EmkBAUux956ucBbJQUKtWplFfSG0tF/V0z6n/nzN5Q4j/AGbkeee6jmcUJBgYysrc3r6+4702vT6RwnTUs2bB1FKnxET3ue8ElYNBQ/4xTAxjA1+BKBwVjmktcwZCCQSjCt8cjc9M9lRJMmxYwMgvDC3PzfQ6W5Eu4atnnkZTrophc07U3wAxBwD6dEkAQOwPDr7/PrHogm2bLR5dLgYy+VlHtM3Jd6ZTL/t9G/7b5/lgA0OxA84fWEwAoh5a7rsPlYkCoA0tYhrFWShJrAKA/+kw0oZiBBy6aDaC3XPRlVMSUqr5wm0gq6ZWCp7zfBA8BQF9feC5DQ/0SgPGMOWbu3M6OsZGiIWoC+Ayd7kiQ5/lvBHDv/Mz6ppNyvL+UkG/p6Ep3jo/W749YuUpCeGsBoKcfIo7hzs8sDB8NhWWpjoQY3VK09YuGmc/+4fF4zLu55nhhDOy/Jr+hVwxBiVcjMNzcjQaDlKMw5l2PzKqzpnM6p43tzqHCSi5LdyZpdEsR2z3G+JqW/HX117Q67jiQzwiiPrN2w0XHJNPOt1Jp99WF8TJGtxY1EKcRx/NINcGomn+rFoDlomeYwXPmda6wlm8f/MPX3wz0j0aL/caHaqjHAsMA8XKYSdyTBIOEUjD+ME66aSsGMi768j6+d+w87EJrkFKHYcTXEM3ADRopR0HbZ1E0J+Ltq+6bDNx2KMDF8Tdrxf6JhOpitlaQEmgCUI1gNz31SsvfNWtnE7PCWLEoCCKq8h+7K+Niy9YSAANmAguCYIJFa/fnZOdQNyDtuq7SWsP3g0sDv/S5Cy644K9ZhsBXQ6/ll+7uXiaEOF844nAiwC9qGxBYEAmApv39MLMhguzscpRfMltLJf0daPmtMw8ZfhYAsoPdqr9n2BDNPAAeS/4v+8UheyaSvBYkZmnPWCnA6S5JY1uCK/ve9Ku/DnBG9uWmuf+BjATlDAaWdSMlj0bRN6AWLg2wRcqR2Fr+b5y25h4MZFxQzkd9CaaBjA4FK7wVSkqkSDa9wdhKJBSwuZzGEHT1DRYzLqTShyU73BeXi74lql3hM8EmUi75nr7jXcd9tRCvnJvdFr29OX3JA5c4wObFXjkgqmMLzMzKUbIwWt4ytrl0NwD09/SbHHLIIy8AmGRCH5Xu7Ny1OO5Zogb2ZxNJh/xScFtfX86vPpeY/SlHLOcodtDq4WJmSNBhAL61Cc3ZaLw/IloBAtfvjwiyOO5ZAoeTcdX304N+A+RIEi0NfA3sgE4mRJClcc9ao9fWH69Ss3Co6gOLFggABqawDyQdibJGSzda6MYGGKuQ7VY4JCVxX6nxO+6JJvdczvb0hGMkwtLA15X1+Y4Yo/GChmsau8D7kaW+vpy57ckvfcpJOF9kACNbCjp0sDbOIWHKb8U92eIcSRIBWzeP+3N36Tpg86ax7xLl3jYwsEE2xCSzCGNn1520O9geBs8AaBEDZw6visVNkQfHx0+W74a0XIeEOhCjvoZoMu8xa3S4CoF5HKXyCrz95iemArcdCnBx/A3CHiCkhNG6BfWvXz3UxuEm+6ZbgWQjk6pnhVUiD4RAJ6oADrCwXJWiQGgiipn8mI0MAZROp1WpVHpE2+Aj2c9+ejDOycoR2y8Mdh/qODKrFC0mAOWithQCm6QZPBaRYAUds5QMPBOUSvoHFMgvnXnY8B9rgW1Yb0uB/yxD9FHerLz9DbskUnKNcsQeXlEbJUgSgUrj1ofkr4NBGeS3QcIszoUSjDJxS1GJIyXG/Y0oiO8hmxXI5ILmq6yFDAIjLy18czM8bcBN7kGChWYJQU8iV3lAuIZxSbPcTSiUi37DfUzMZC0TCV4VMpvmjGdgICP6+vLmxannD0wk3Vd6ZZ8bAYpMMuWocV8P9b0ptzmMoYTuyfhcHMdZrpQMg8T1zxRDaG0pMHZ1HM6oZn83PJydA6CnXPQB5qaATwzhexoQdGB2MKv6qK8hdSJmtpcNnjcHQK9X8ql6f8ywybQjSgVvw/ijD/0m/PvQlcacFURkb/zVl/aVil5XLvlcv2ioovN6Wnq/ENhFueg9Xtzwq19XHw8AmioZwwnR4poVx6DDFVO40QSKwfMo0N3IDWswDJY0ObMcAAwjWxnj5/aVSr7eK/ncCsRnOka/FI4RdWMMa8wOiFxfn7nliS99t2tuxzkjmws2YlmqcapgCxBJSUJICWaGDiwT2LZaXBKRu3XzuE53Jk5d+9svX7z01R//+QAPyBp1ZU+3QG6YYezR6HI6MN5yscqQQqIQFODQIChnsXLZy5BSN8OVCzHeAtwsa8xKKJSDe0PmdvPfMZCR6M1PGQrZ8ZVMLO3f0Mr6n8moFqBqiyhv24KrpnCztcZRSppQ9v+lcnGsP5fLlbMDGTfXl/e/eEfvbjKBLIBzlCuEPx5YABCCZhSK5lD1b1NpKQURfM/exJ7OnXX4Lx7eEcBWWR32Z3HZ4FBSzdY3JJJiUWks0EqQYljd0aXU+Fb/+pMPfuDxgYGMpOnKo+OqBdedtADWHouSJrRqvkts4QgJT/8WZ60eAx8gWhZLjh/+zKoHACzZljH39ub0IGeV94RY7JcDNGdcUhZGS1tLIyNDYey53zTrDzR//sLYY70smU7A90xjjDEEIoB5FRg0f2ghVbO/ywazScAe65V8Ioaou0Wt40pRGCtv3Drm/azWVRqyP8dNdnd0JncpFrzm7sloHRj4AYjoFQfPlnsBeDLLWcpRtZAhZLa77Dr/yHRnctdS4/6sm3CEV/LX9fXlzeBgVsVCl6HwGlrXMcd3dnWp0ZGiphZzT9eslCIR1dSZ5IEw2mLurp34yx823dbXlzeDPHG8ljYU5cdNx42WVBLj/hDOvGnrRNm4SfQHgMgB1nXU8Z1dSTU6UtopY+ydGCMNDWVlX1+fXvf4Rd+bPa/jrK2bC0EYOaxdxTDDEkF0zk5Lqy2KBa9sjBkhgqscOTeRdGRhrMSt2BwzoFzJouifCeDn8+sXdGEOG4OwApPGUtgioSRK+gGcdNOfcfmKfdEl1sERr0DB16BmzA0asxMKxWAtxgqn4l23F2aS1rPDAG54eMggnA5eacMVBE0xeU4sl+q6XE/BWKb8efWfcETGuUm+20S1Eo54e1TJhOt2Ms1zYmad7uhQ5VL5DybQZ5//8f+6IxRzEHJ9ef9zQ295FwRf6CTVHuWxgE2gjSCSNGPgYSMVyXSnkn7Z/Epb85mzD/nZmkqMrT/Pud5tB7bK6hAZkcvlzMqlh1+V6pBHjo/E4AYIkCiXjDUefzl0C85g5/3dEhjWCIIjMSvZNal7kkkgsICSr8RXjukA5Qq45GwHZ1+qJ+kKQBjITO0Cyyzk6iomsSt27DeJA9Idap+QaTRjXK4aC0p3n3zIRc9XM66GSa8nZwAQCbGkmcuKGSylkIWxUrHol+8AgYeyiEQZA6Kvr8/MX6DemEglXu57gUW9qxSwyZRLgRfc9c5Dc6MDTVylUmC5VJLDemWTBHosm45ZKTUamAMBPNkzFE7YDROGUiuUEg37I0B45QDlUrCmyp2JGrcaieXGGMQih/pFIltrRkdL3ydgjADBkz6EzGyMYDI/iEB08thv7Eb7yYo9ICh0ozGJ5l6DuAQcVgGg6bRnqRxfiuXG2NZjZNbjo6UfEDDG0x6jbBhjpK7Vazdc8Pm5u3SeNbJ5PCA0ptYws0mmXal9Y72id5VhXGO0eFQ441sYbkKy2LNcLH8wmXbf4RUb77H4uw08TSRwWMjGc7phsTqQmQ32ekO3L1o9ywxXAkX/Mlx1wp7oEHdBiD1QDEwDuNUkcAc/wq9ufC9yqCRwT3eq2VEARwDx4sWLE7B4sbW2duVbU/6KWwDdtgFbHcA0vq/u78YMsgwLG4mwQy+MjXLgav6+6nyblfCqOy4zs+3s7FSFwvjqYsG899Of/sim7GVnJPv6VpY/dcebX5x0xTcTSTpFlw2KI4EWEopAckZVchiWibljliN1WY+UC8EF5c3PfvO8Jb/zmLOiHzn00Q5JMqX+oW6Z683rH953xCUds+WJY1t9rQSp6HqYjllSFkb0TZnDH3h4xmW5eiLXjhIHQlBYL5Ja3lmEwFiknD2wd8cVuOyEM3HmpVtxThRnAdCkBc429eWKhRCuI5akOhMUbDG6FeOybFYBoPgzja7dUO12/a8/9xrlyP29os/1Dz6BbTKdkIWx8r2nvC73lyxPqA7nzw9XyULKZYmUA68cNMQCwUzMTLAcnktFnBK6Ewfu+XCKCceWS35D7K8JqWYhBaQShwG4Bj21vwzdk9kkgGPLjbFE6ySU8Er+01s26/sBoI9CJhmr/q67N/sSIenQcjEAo9ZbwQybTDmiXPQfXbLPJ963LTdsbqrKG7EbTZij0ZFq7UbjyI02HhShcQcArggoWmFnpBZd/fAXXiyIDi0X/cnG+OvF+27fGAc4I3spp9ds+OLJXXM7PjOypajB1FDlgy2bjtkpGXjBo2zEOcfs89Fm+ZqbALzz5icu2jXdmVxcKpQblMcMJq0NwNj9hscScwFMKCrjxSq8bnQ4u6AUtHZPKlIY87eAqYAkDUOIPZr+fSWB21EYD76MU278BLJZgSxmXFZvh7ooU6nUPAbvwtaCJqncHeJCPdhVrWUigKl+bQZk1cBTDTo1wBS/WgbDwoYBzpBEU+gmCMEvrlQSAh6zjfaFBnCrPq611oqwxL8sFgsXfOiDH/g0EOb7nHPmpeXPDL75RFfRt11X7F4a8w2BhBAzv+7MrJUrlHIIfllfq4v0yQ/0/ux3MfMgyu2w6gmXXHKQOqd3OPjePUd8vmOWOruwNQioSrIrCOSVLZMwX9yuAxnefVp+YSKBUmCRdk7EXLM/bjjpG3BUHsvyz05coKxA/5DYnsamsRCCCcuaigQmGFfJank7AB7qb84cYgaUctzjO7qSanRro1uOQSyVhDFhuaLYzRWzv4j9L/G9AGjiKpVKysJYacwf4bsAcOwqjYUyqa55h6TSiZd6peYr87oQN2nfAMAbq65FyGzzA6IPfWb+guQbkx3uy/y6/YVM0iG/rG87szdXrha69PRA5HLgxOzk0Z2zUukWSk7rJpQolry1Azwg5/9xvYM/Qk/jC0MP+s20kpBjN5qQk7vRKHKjFfU9ePuqv00kH09yGtEYZVrt9DFmOSvW94Nve+xLe8Cl7wVlbdmyaPAOWDads1PSKwZDvhk7Yck+udHBwaza1LOI1/ev5/7+fgaAm2/+oHvfffMCo+2PpRSLOapgXr/KjHLmkl1WdAB4vr8/ym9cFJXYIiyHnHSxGv7UWEDg+1BiNoqBhWgGbgQkpcR48F94601fDRO4c9vUx3GHAFw2m6VcLsfGmLmOUGnLjFBxzzVV+mvBrR6U6pjaNECuGdhNbKiqThIBW6WYE1ck/fG5sY1Aji2YbYXRtdoAwBhjHNeVVutSqVg8+0Mf/M8rLnngbOecgy8Nzjnn0uCzg2+5yHXFJ6xmFMe0liLOYZsRslkG0DHHUbqkn/bK9uMfeNPdA3GcLdc7bPp2YGmgSx44yDnn4AeD7/7siHM7Z6vPFEYDLQCHKvFeNl2zlCyMBKtPfcMDv9ymosoTs6qdwd8KFAMLV74CCfktlIJ+3HDibSC6Cb4aAuWeBWArjU3XL+SpJqZGxhWKBIQUry83FQmwTaYSsjBWun/Ffp/8UzXjajLp2ehOX24CA0JjvEcIqPHRkrba3lztgorcQPa6h167n+Oo13iloEGUQYBNpl1ZHCv/7ITDPv33WMgBTIhTSKnlbtJBuRzYZrFEqkk3YOF7ARi0cODuT84nok3xKn2CTdKyRNKBV6rdH4HJaEvModClWnSzadOGUHkJXhFWRm0GLCxLRR+W7Zo+6jMDA5kZ1MWchiM+dqNddsIcgHtQNpO70aQAwKujlUqrHmWoHyNbnMDMk45RstyuMS7KL6K+XJ9Zc+oF35rT2TlvdEvRiDqQYMs21ZGQ5ZL/68IzG1eceMRXxuoLEeRy0eKFB3RuSZ9de+oXn9OBQYvSI5Eo0moPwgeA/v5+zuVyYf7aZWckgS3HwjMUlc5rtaAFpJgLAChrC9FEaSnAUKRRCP4/9K36casE7hcU4DZs2BA+ACIxW4Rp+xyXeOEGV+IE0DUwsBi00AhuPCNw45rebRRWTw6PKRgi+g7CWkjclMVxBehs4/5D5qZTqbTyfO8vRa/Y9+EPnvuL7GXZ5DkH58ofWdW9a9ds9eNESh1fHPVtWA+SZnytLbNJuFIqh1Au6B96ZXziv3rvfm5gICPXrw/jbDuSgQ8Odqveg4eDb//8iLelOtS3SgWt2ZKEmPiOBBEFnrVC2M9t9wEFfjdDQBQIjIVvGErMQ1K9DYy3wQZbcONJwwBugMEtOCW/MXx6p9/BO2ZciZSzuLMr1VQIwSCWjgQTrclms2I59pD9TXzn+XyfAHL2hl9//qVC0CHlkt8s3mMSKVcWx71frXjtpx+Pk6hDgAhFGcmUszTdlRSt2J8QBGt5NQCKhRwV9scDUj7x1GK/HAD14hQGlJJko2ciekZIa2uTaWe2XTDrtQDuitMUJtgkL/HLtWySmdlxlCyMl59zCmHibswkYyXnmkcvnEuCusslr1HJybCJpCu8kvf73z/1zCPZbFasXz8xf7S+FWj6E17sRuvgo6ZwowECEkU/gA5uqRKmTOZZicZ4/lwS6C6XgoYxcjzGsv/7J37/10eYmfr7+2c8xli9uHbDF4/pnJU+ZXyk1AhuDFaOZGNssVD033biEV8ZG+AB2RsqYyd7tJKhU7VR+UJELKUgo+3Wjo7C1soSK6676T5/CBLuy+Br2zI9oGpSi8qzNE+uBwkEloHEbaFXBnHh7G2cYnagEenOMEO+hq5V4lr1LspabGsUebQCt2atberBrf7/1sTFkC20CTtpm/jVGuioGLKtFFnmGhZXvU9rjE6nO1Sg/QdGtxSO+PC55/7iqwMfTuXOzJX/a0336ztmuT9XCXl8YWuYqE00s07CUUkv0znLkQD/qVw0J5172PB7/6t3+LkBDhlTbopV5YxZeFSB5Fs/PeLoRFL+OPCMNRqy2vVhmU26U4ly2a7JHPTLB7aZvQ31hOeu5RqUAobgGbTsIAEiCc2Mgm9Q9A2AuXDliUjIlRD8G9x44ndx3UmvQ18+dFdms1Ne/wrjMrSiIoRoPLIsjJZ1uVRalcvl7MF0TkBEXL/19eUNEdhV8ujO2amUMdagicDEcRWYsRYEHkK/nDiXfhO5DZfpCvurvUWEIFUYK/vW51sBcMz+Qnc1uHPD7/dXSr7GK9eyP2awUAJa279by0GdFsy6CQeC6BAAmI/1FO/PedXC1zqO07A/EJlk2mUAg8ccfP5IKHQJJ+YoMRwkbXdnV3KeCYxpUPiFiwoQ0Zrzllzs5XI5m8vlbLPrWr3N0Pcc24qKG635k2eQkATDj+C0m58Eg6byAsRjtOjq7uxMzjO6cYyIxwix5rwlF3tExNsyxvVYz9lsVpAQFzC4+SPDbNNdSel73hdO3O/TGwY5qyYrmFwVt32ZlMKAocFsqjcGtFLCAPxU7165chhXBVfENwmxDK4Ma0xOR69Bk0Tc2Rp0OAlQ+WhQzqJnaLswaofG4JhZRSEurhZqNGNxEyDHaMTDKnBrIhZpxdhi2X89gws9D+FTWV0YeaLYcqO6srp7QN3PdGdnpxobH1/tl8bf/rGPfWD8m+vOTZy35OulT9zcc4KTdn4sBM0qjWq9jbE2o5SQybSSXklf7Y95533suF9sDAshT69e5LaAW653WH/tjiMPdBPyeqOtw4atrOMcQoB8z1jlUD+2pwRRLmcjqe9vcO3yyzA79R5sLfsgcqe/mgJVguGGGWG+GiDFfCTUOSib9+Kmk74Pr/Bp9OU2TyYtjoUQqx/+woulnEwk4Ipy0dugi3jup09fOHdkBOjoSjbMMrpUkiqVMp7nn2JNS/2MLBU89sphkvKm/AaeOBeyax698BVSyoPKRR+Nq+JYnFJ6YNn+n3yqmv1VVQxZmu5K0uiWoqbaXC92XEnlYvl/lON8UDnypb6nw5aGYLLGgoFD43OqCG+SySXproRo2B8zcRiOqBG6hEAdKilJihVCCmZqFt+BCLwAxvJP1zx64VzrlmVXYk5LtrEVQKpgxShGx/v2y/nTulN6hzUu606CcMykbjQmhiOBsl4TikumLhoej1G5YoVooi6Nx+h7Gsaan6559MK5iXksVJCa9Dn26sYYxzXXPXbh8s5ZqYOLY+Vm4gybSDlidGvhD0nX+zpzVgCTx+ZjtSsRju6YlZJaGyll7e1mtJWzd+lEuej/EqiqptI7bDCQkeDyEgQGURm07QQR4qhCx2EArtjeuW2HApzWgONwPRWpA6d6kGvuaqxWM2IagNYM1Opodl1NyQmEq3aX1rC+WnBjZrbpdIcaGx+95Oz3nvk+MOgS52znnCUXe5+4483nOa76BmsL3zNmm8DNQqc6lTKGx0vjwUc+etTw90LXRFjHDzvBBgYysq83r7/20yNekXTkGkHo0r61SpKoXiEys+noUnJsq59/5yH3PbxdsTcgVD5yViC/4TyM+a/CnOSR2OrpabW7mQzsNDPGAwOCQtp9H7jjaPxo8Snoyz/aSjAQiwTIkcd0tBAJEEH45QBEeNWsXdOPj3sgmQDKQZM5Vkpo3weI5xXHy2g1EXkl/4lN5k8PA6jEY+JzES4d1zkr6TbLp2ImVo4EEa0JY3f9ElHV+FgcwhbLtB+WHownHWawVEJ4Jb+waUtx5R67zTkpBjhERWF9TwOMAy4bzCb7enPlLGejHoJUxSar9ielHB8pFkrj5s5qoUusvLxk1dlpZhzjlYJmeXwggigVAwgpLoEAJKWbX9Nwec9pIcg6XMBWHALg2UnrI4Zu6tCN1tF1CBJqKjeaRFEzrFhbJUyZzNMyoVadYozlolcZoy4CGn7LvQohCA4XEp77RgB/z2azAlgfqxc+2srbwWBOJB1RLun/6d0rVw7jbpMLWfqozzCDbn6C/jry3NiactmPJBQ1529HNkOQwDURIbYTjYILr4V0XzNp77eZzYJhnzjQoQDCBqr/LABXLRhhUeVWRL26ES2FGzXMr1reP81YW7PfMXOLXnDVtwaaAhwzQ2vNRMTJZFKOjY31n33WmbnsYFahH/acXC74+B1Hfy3ZoT7sFQILywhrR84kjw4MYts5x1VeST8QFM17zj/m7l8PDGRk2Jhw54BblrOij3Lmm3cfMV9IuU46tLtX1EbJhvgES0lULtkAHveHFRS2158NBueAPozjx8ccD8K30eG8C8aGAWgCR3ErmjnYRff1qBcg7bwSs5K3YWD5Ycjk/gigQTQQiwSUK5a3FglU7qOUECI1nW/X6Ba9Swk2kXBEuejdcs7BlwbVAoDIVcpgrLCGW+RTQRbHylb7tSWxYqHMTb+54JXKkQeUS14N+yOwTaZcWRgr3ffeoy7ctO6xCzYoJd5UVSFFBL5mpcRLdt1V7gvgVznK2et//fm9paQGNhmmObiyOFb++SkHf+aZaqHLAELl5Yv3evkh6Y7ESyZTchIBUsldpvJTW2PRNSuFsa2FR/sOyT1bfbyWFrvRWCyHKwHPtDgPtkgoAU//FutHfgWApurMHatV0127Hjr1GGlGYxzdUvz1CfuH4qF8fgMR5c3qxy98XcJxjiyOeQ2LJmZmx1VydKS4ESJ1RVhIuXkBgibXn4HzPzD9UFTOhh24YQG1FGmHWvd+a47ErZ9rIgQWIH4NBpa+GH1r/xrmMG5bSGaHApyU7EfsizhEuOa5aWj+OsHebFgXsh7QrA07adYB2ERNSdtwU1X/Pu7EPeEipyqAq8j+a45pjLFEJKSUND4+/v6zzzrzu9mBrJvrzfnnfnNx4uN3HLMy1alOLY36WoS132iGCwIrpRDJDiXLheC7Y7/jD+fOvLucHexWfdMoRbPN4JaF6EeOO289poOlXu0mxb5ewdeSwly3uvvRpLuUKmwNLnvnUfdvSPB2srcakAOBbi8AOAPXnXQdFD6FlHMIBAFlDYTxK2wb2JGDYhCgK7EbRu13QTgOnCXkcnWr8Ly58tHz51rLPc1EAjUTkGUYo3l6h2+xE4YIfA1rsLraTRS7Gm/6xRd3ExKHl0otXKVpR5SL/vofP1ZbEqsnSjNQwOKOrpRbL5ThUCwAWFrFDFr3GN/PjLPqYmIm3ZlUOjAHAfgVALiQx3XOSoVskprsD41ClwklJ7VUctZ4f4JpXFOCtpaV1rg+ZK4Tx2tpsRuN/OMRGEzinrRwpYCnb0FuWE+nzmE8RqlouZvYsWME+Lp4jPPnLwznV6Z3pjojN3HD3E0mlU4oPWLyx+9zXk1HiunNQ1EH8jyATAOSAxkgg4ytsOXp9n6rBzYgbEFkufUC1ViLtJNCiQ4E8FcsyhCwbSvqHQpwAfM4WQtBRM2YWE1eWp2rkqeIsbUCuVauyXpAqy7LVV80uZVYxRhjI4e0N14ovOP9Z7/32uxl2WSuL1f+z+vfsktytrk2mVY9xa2+FnLb4m2JpJTMKJcK+gPndw/9IF6J5yi308AtKtCKfH6DEHtsyifS6pDiWJzI3ej2UJJEadwUSOPz4WfzO64WWwxyyBIotwrAKlx/4vEgfjdAx6LTnQMG4EVgF8s9puvsJ3Iw7hkk5LG4cukbQbn7q+Nxce+0OW5Xd+es1LziWLl1SaupgGt63zm7riOKhfLfNgfP/QIA+lBb/Z+68JaOrlTX+GipRT6VI0oF/+Z8X94MVZXEipmcUE2rabAgUoWxkm/Z3EwEvvER80BhvMz17XfC4uR4E4AfAoBwxXLTyCZZEKnxsVIAYW8BwD3VxZV7ciY7mFUAHd9UyTnza8ogqOJ4WVv2b40m/8nBLXaj6bH9kUyGbrRW7kmKXGMcpQdM4Z4EgN5ojBZ0vO/t2DFCOLfEcdC+TN4O/CbrEnCiV/LRDEQJEJ4XIAj0NWDQTOGAZpJAHfd+u+rEvSH5QHgaU6onwwk55LfajkOIztZVPshCCgHmIwCsnk4lmVa2Q1SUCxeG7Uq0tSNGa8thhYWG+Fu8RKwFp+qk6haAxnHydd3PmotAYIxp+r56CxWUpvL7+r/TWhullGBrR8rF0pL3n/3ea7OD2WTuzFz5vBu690zNkYNuUvUUtwaatjXe1uVIa/mpwLM953cP/SA72K3AoLrcKspkMrK7u1t1d3erTCYjt0vgwVGVEsrZP+y26UepTuf44qivqXUag0l3KeH59tvvOPwXT+eRETnasQrOsDJ9JDwBgJNvvBkn3XQqUrQQ5eBMlPWNYN6MtCuRdsJOzMzTZ5BMjIRiCHFcjduqij0JksuFJOYWKQWRaspOa5t8JjGJtMMA3fGu14edCOI0hrhav+uq5UTEzVylcUksY0zI/mp6v+Xs5cOf2h0CbypH7K/6jkumHBjDDy1d+KknmUF//9NfHrfa/NVxY21YzC4NAHojAAzcl30RAUc07i9UBhptHl78qk/9Lj5+zAaIwK/fJfk6N6H2LTfJ46uOR07vmrJOJl022jy8fNF/P8nMNGX1kqFIgee6S5B2CIxW94yFkgJl/Rds4bDaxxTuyYGBjASBD9rN2d9NqH0b1KXbM0bLDy9+1Ud/x8yETAYgcAe7b0iknL19Tze6QRnWTSrhFf2nSuzfBwLHlWR2ioXKRoKwi9HhuLCYvO8ds4UUhKQEtHk3mL6JTiesM9l8sUFhrVAcFn6PPds8lh3C4HK5sCirLtIWN40CgC4ws2UmUQdMtsKeWgtHrGUQVbkpI9ZmI8AEM2BtpRlpxLYqjE0IUQG9Zg1La92UjQzOWqsTiYTSOvibV/KXn3POex766sCHUx/tzZU+sLr3dSqtVktFLy2NBlrOFNzCQ+mOOY7yxvWdpXL57bnjfrExVjLW6DAyGZnP500+3+gOjH83Y9fkULfM9Q7rCwe7v5me5byjMBIEkoTTqm+aVEKOb9XPSaG/lM1CZJDfeQ9O7PaMge74/DMAfgTgR7hp+W4omaNB3AdBxyLtJDEeMDBNxyUzQdLezUUCX00xB6FIoMmij6O8MeVI4mmsLnwvaLk4JWayhmPVYSUpOs6nuvze7Cxr7ZvLddX64+8jLon13MZQ0daXqWV/c3frektnk15tHPZOA8bKawHwegy456zoK6577MJfuwn1ksALOCrdQr4XgITY9/s/+1hXx6zk4V2z053jdcIbRpjmQIiELkMTQpfYdegouzTqi6ZbzTVuyplWkXGjreicnUK55K8NjzFxvNYTceRGM7x8UjcawyKhCIG5A+esKU6nmG9cSFuA4t5v9WrVGY9RNxnj/Er8hxYnUi68sm7avslNusL3grv69sv5rbrL7ziAi4tWY3nYN2US9yRHsU3mAkr6DGRWX4eBFW+D4Um+DxLwDcB4LVaeuAvOyD0fRe3+MZVMYhsZ2X1zOv335wB0RfUZqT5BejIV5JSuSUwU+KqfZWNQq46/NSonJwe4MMZidDKZVr7nPTE6Mr7sQx96/5PZwWzyo7250rnrerrdpLpekJjnF7URYmbJ28xgIWDTnY4qjQWXPLxx1//M9+VNrGRsAWDitNPeeQgRL7TWOkLI3wVB+d58Pj+OupYmU9nZlxzk5HqHg88P9n4mNUt9sDgSaEFNWsJX1vzMqQ4lxp43F551xC+fzw52K6JtTC6fRi4aAKA/x5XK7QxCf7fEogWME/J/B3AlgCtx44p9UTYfgiPeB8thmsBkMDcRcnWq3U+xSKBrrn9IskVJq0h5CG3sFm3sRgp1zJMVRhVgvFJIEvUgx8yswvJaW73R2k4EcVL1Ll2JIzq6Ugua9X6LS2J5Jb+hJFal9xthObXo1VYa96znBWsB4E9PPhMXYrhfSHF8pUQTgYxh2zU75e5WnPN6QXSskAL1En8CZHGszIEX9WLraez9JoRYqlv1RSOALaxf9p9kTCuvjUc2j8NaurHaHTulG+3Hy18JJaZwo7EA27i4cmMMqukcH35vgnbcGKlujJvyG3j9+oVxXKVbB7Wq2OrFG7OFBQ3N0F1O/egn9Ld6FoEcclwDLAwC5Sx+snw3CBwe9dQTLf1UjhRg/hM8P4O+tWF4QJd/jVJgW/bii+NwSTUHHLwOwF3IZwQw8wX9jgK4uPJPsGzZ8r8Q0V7WWiYhogLHFlzFtmo3C2upwtiqWVzlHp5ovV3ZRBXg2SpQq46/tQK2pk2jw/PR6XRalculB0e3lpd/5CPvfyZ72RnJXG+ufO6at5zgJOTVzJwMPN1QQWAaF8hKReQkhCyN6fM/8+bBLzGD+rMQ9YKNGNxOPfXty6SUXyDC66RUEQBbOE7iT6eeetpXrrnmqv/NZrMiYtCTPkBnP3CQc+nBDwb9t3e/P9WhPl8a01owZCsnNTPbZFKK8ZHgdzJwvp1liH4Mm23uUDDdslm5OtdlnIfEoPAmB3Bi/nEA78e1J9wBR/wEzCru39iSNRMBxm6udlFWklyFaCmEiJWCo1sKH1i28FNXZQezKtdkdRynTdz44BcO7pyXvFcHphnZs8m0K8dGGzsRVPLHlAh7v6F577ewJFY9+4uY6AOfmG2BBvZXKfRb8h/zX/frR5lBQ0ObTXg/8f26rgFpWKqBIZR4GxOO8kq1veQmCgd7jz14/e2PVvcpi5Wc1z70uVdJJQ4IRTv1sSk2qXRSlgrePce96hNH9ff3Uy43syK6U8aMwhJbjAQdhw7XmbL3WyHYApSjkiWTeyniMa5eH4/RbxLu2f4xZjIDtq+PeOCe7DwhaL/IMyCoIQ2BZHHMs4B+OPToTS+EEAlGeFrPYsXt2y2BYQNFR6PD7UTBNy2AiiOGUUJBH4fT1/620r17IPMUjPcMEvLFCEzztA2mEBxL+k0A7trWONwOY3A9PT0SgGbmJwAcGatHmrknm+ewhYvOCXaHWhdlPXsTouKqpDqAq1ZNTsbc6jUy6XSHUygW79ry3N9PPv/880fCBO6Lyx+4+Zh3q4T4gTVWWG2toJmBm7VsXVcKKTkol/SZ/W8eujI72K0Iw6Ze/hoBljn11NPe77rOt5kZQRBYY0wU32AhpXxZKpW6+NRT3/aaXC73n1O5K7OD3Sp38HDw37f3nJroUN/2itqQZTlZSJwBlq4Qftl+6sze4fIAZyTRNrsnCVcu3QuJhAS8FhdJMOY4hK3yefTlNze4JAhcWcFlswKLNii8NX8dBlYMoMt9B8aDyWXKIZ16rEEkkO1WYHu8Xw5Qn8PEjJBxjZZHbNG7HQD6e3JNQT52WSW71NJ0R0KOtHBZkSBYHXUimF/b++2b685NAHycV/abdv52HCXGx8vPFYrip9UsIu7V1pGefWRHZ2rX4ljZUm2dv1CYUvRv7qOwV9vQUHjf+WPeo0UlSlLKlDGWKewMLIvjHoSiMwFKeOWgXiBh3aQjSiXv5lxuWA/2TPQp6wmVnJwOS5459crLaOZj5UgwYxUR8eBgVk67Ms90XVU1brQpe78pjAdD6Ltt87R6v4Vl3VgKZ3HnrLTTtKwbb/8Yw5JvMOnZiVc5rpob+Jobe70xO66iwNfP+Vb9OSReOZ5sIRqX/Fq34cKTOuemP1IaKwWMxlzNVFdClsbL9y7e5/yPV+quxkWrgRXhHN+quDJbJB2Jor4Xp6/5bVRT0o+EPyXkV2yAEi9GuBBsHoezFhD0pqrv8x8jMqldt9CvmpXLapXDxlWV+2vKYdn4/1FNyOrctPoqI01EJPVCklZikuhnOpVKOeNj49f95lejS84///yR7EDGPW/Jxd4H1h3zYTelLjO+JRtYnnnZLTZuUgoiHi2PB0tjcMv1Djf0M8tkMjKXy9m+vtPfoJT6dhBoq7U20TEVAEVEwhhjS6VSkEym/6Ov77Sz8vm8icQnzcGtd1h/+tbeY1VSXaF9a63BpJJ7ZjbpDiULI/7PznrTz/LMWbFNieaxW3JgxWuQcjYA+jFANt+INsDHbwHviHARPUk/t1zOYv7GUJTC+BuminAQJMqaAdwbuygrIoFTj9nfcdSrvVLAjTlMbJNpF2z5ZysOzj03MDDQvNs6g4Z6Kumay3xfo6FoB4OFFHJ8pFS2HHUiGJro/QYAe770RQcnEu5eTYUEUUksAgb7GkpiRZJ8ohVSCa4vYk2A8L0AsFRJS8jlchYMOvnQ3F+t5SfdhAJqOniHOX/Uoj+YXw5gbG2aQ5XrkBlYUVFeNn5eFsfLRht9cyiU2cAzWCrx9AAiZ3HZkheFbrSo91ur2Gz4uhrT7P1WyVUkTKhVG9gRZHGsbCDCXMVtGWO8AGLGKxNJB9TELUsIUzWIaNMJr/74eOzwmpQZRknjAD6VSrlHuEm3N9WROKp6c5NOT9es1JEg8ecY1MEIiytfvngWCL3wJmlUHBetFrwa1RA4VCm99TCkQOuyaUTwLcA4EAOZTlB4v/7DAG7BgjCuYdg+orUBM8sK+MQsrE7x2Brkqv8uUlpG+4mBrgHUYuCahmoy3rTWrLUxqVRKjY2OXfL+9733rfPmbQ6yg1mV68v7/3HzMV9wO52vBWVtrAVIzDjHzbgpJcF4trA1OPrzi+++vZmYpOFLEfzZUBxjbbMbKAI8qXVgifDZTCaTyufztt4lFh/r/DU9h6iUuN4altZw83hBzfEJOmDWlj4GAPn8hm1TbVbqyNGR6HAS0cnLhg0kIYWDsmaMm5BlxbGHVrZpQdjzTeBY+HGZoBYrSVcCgXkCI8/8GmECr4knD0eopemuJDGaKOw4YlyIylCFVfUbziuLLOUoZ2969HP7CCle75V8bnDbENtkygVbe9+K/c4POxHkanu/ua5clky74GZKTGZiMBnd2Put0vmbcKxfCqgOlKyTUKJU9P48vvXZml5tg0NZSQALwoPKlUCdOpZtU6mMdRJKlEv+n0tb3Puq9xcrKW/e8IXdhaTD4pJndUTaJlMuad/85oFr/A3MTDuyG8aEGw2EDvUWpN1O2MZaoBX3pBQShaAIz78dld5vk63ZwrJuN2/4wu5E9KZyyWs6xkTKJa3N+nuvKD22zWPsifQlgl4ipECzOB5PeKz8sIYlMJnbMVwY5eza31745lRX4uDnNo4EXsk3pUK5shXHPW0t641/3fpMwitcVvEW9HeH93TCPRIpZz4Ca1sulAkSxUCD7c2gqus6VAHAh2BjoUkLbAoswxG7gbxFUy56dzbARRMskkn1a62DzSCiqLxVo8y/aVmsxgr+tglTqwBd/HNmmFZgF72vZ28xuDEzJ5MJOTo69oX//I+z3xdVJ0GuN6fff/Mx3052OZ/2xgPNFoJmmGTMlk0yrSQb/mOpGPRetOLuX04BbhQxsXnMfGRUPUVO4j8XWmtSSr0MwEEAOJOZuAEGBjIy1zusP37b0a9xOtVqMHXowPJUfcGigsrSK+kr/uPIn987sGOSug8KlTxko1YRtf/ilanhMgIdiWcmcbKEvnyDa5edgrTz+rDySasVOlkkJMHSVTjnwQCD4UMaFzRm5qikVWMxZKGELIyWvKCM26oZV5N5SACA44adCGwTOfpEeS2xuvoz8bmE5ZiwxPd0w3MZl8QqjJbHwfIOVEpiAfl8yP52XeC+IZlyX+77uiZ2F062DhOJ2/re9PUS84CsnwAN2/taBvsbJ1SbSDkM4Pa+N320Zn+RkpI0cEznrHSHMcY0eW6sk1AgQetyuZyNixXvUKt2oxFaF1cmtkhIgHEf3nnLX6bb+w0AGRZHd85Odxhtm47RTSgIKdbkcjlbXUh7ZkAd38I0F9xaPxUK6ZAe4AHJk8WiqxZGBLognNSi4uWY2BiMdKerGHxx73658cHBrCIirilarSh8npuv7MNnzthHccqax2uLVscLCJ5caBLdmkgqgMLaqNsSh9uRLkrOZrPipptu2spsHxKhrN/aZqBkbZOq/1UNR1u4HO00XJOmnrE1AT1jjCUQSSnF2PjYB8879/2fjaqT6GcuXSPfd+sxVye7nPeXR4JQ3jxTcGPoZIeSgW+f9Mv05gsXD/92KuaWzWajlkNiNyKaNVUrjQjkrBCCAflSANi4MbwBMpHg4YOrDn+ZcugWkmK+9o0RYnL3KjPYcYhKRTPq6+BTzKD125PUHa/aiPeGYYpYFjXZQjWSK9NIqQUAGPMWO5UuvtmsAGcFBrtVJOH2MbBiXyj1begoYNvcVcVQJFDwRyD0JQAIPcMmEgnw6vVfepWslLSqr78XMi6t+ZcnHfDJP1YzriYAF4eFl7foRMBEkIXRkikXQrdcT03vN+LXnywXKSUXeSW/Se+3iqv0nmX7fTwuUcXV7M9Ralki1cj+CExWW4JFjTClytUGHfCDpYIHYkw5EYdpDpZQJ3SpcsOxEnJ5JDJo2hfNK/kwnl7LDNrUsyhM9J9sm9HDF7nRLjl6duhGM1O70ap7v02FnT1RfztJK0KK33qMuhSsYwZtwnaOkVlOEisn39cA6OXznnjiRQMDGcmcpSbPNg38Juv09ub02vVf/PisOelDigXP1F8bZthk0pFjW4pPJ4POi7OcFdFiKixavW5xAoSq3m9N7xILRwKgNSF76544Rn8uul6JP8Dw3+CI0MvSKg4Xlq8+omrh8o+LwQ1F/lVr+c5KBLSupiRPClDN2dykwNYsplb/+yqg01obKYQAoVwoFvs+ct65F39z3bmJXF/OP3vg6Nlyz13WJTqcU0sjwfRrq9WBW6JDqcC3j49v9d/yxeNu/8N03JJV5gOYQYkdEBH5sZs4y1mR78ubc9cdMT/VmV4nHfEyv6SnrM4RfV022aFEUDYXntd7/1/ChPDtSOqOb2ZG59SRE7ZwJaFTfRoAcN4tHnI5ixwscjkLyln0Dmv05Q1uPGkpEvIuCLEgmsBauSc1OhwBj7+IvnXPYiAjQOCesN8apLCLO7tSjuXGRNWYcQlCA+Nq5rIaePgLLyYSh5WLQYPLCgjdckbbRx++yf9tdVJ01PsNiURiSborKZu5SjmKs1hrq0tiRSCVM5mBjLRsGzp/MzOrsFfb8+Vy8e5q5hoFMxkAnhsdeTzwzd+VK4m5ZXmJaH9SFsa95zdvGrm7lgmD+vry5rLB7BwG9XrFSMlZJ1xIJB3ySsFTf/Gevp/ChGQzxdQ/s0ktdmPNSoVuNG3MlG40ChvOTuWeZGbqo7y5YTA7RxD1eMUAzcfokuftgDH2xMIkjE1SuZGsZd05O5X0jHhXX1/e5NdDDQ5mFfOAHBzMqpCBgfv2y/lrfntRX6ozdWFxvGya6QmIYJWjiIEP9O73gfFF+UVhMeuB6LqOqzfAlXu2VD9GAI+yBlg3Fq2O21f15UsQ2AAlJnOpEnwDEA6qeG1mWORih+bB9fT02OHhYQD2Zt/3LxBCyFgxSUQTJbaqE75rFJW2Oo+7Eg9qLMU1Ubg6DjhYIlCTnDciQpX/SSeSSWWM/XvJL2Y+/YlP/DR7WTZ53pJc+Z0DR7+MZssbVVIdUNrqzzyBO4q5JTuUMr55vPCsf8zXTvvpn5vluDXXTYSTzbPPJv+6++7+34SQLzXGTFXeRxijjdbeegBYuHAj5Shv3vP9N3W5TnKNcuUirxBoKRrrSzZzKyRSUoyPBE9ssuobWc6K3BStNqZv08lzIoliwEipDK47YQiWvg8T/BqsNsMJBKy7GyQfAEGnQNAxsAz4LboCh75WjS7Xwaj3U8jE1yLmZ6uZC4mmJa1qRALlcb+GcTVzWeVy4M6EOLqzRScCZrCTUCgWvLW5XM729EAhToqO3J5E3FCtvyomqsZHi0GprJv0fsub1b8+cD/HUQsbOn8TmUTKlb6vh046ILd1oK4+IRE4y1lxFuXG1v32ol+7CbWbDl2cLfKTyCTSrvJHy8OnH3nRlur9xSXP5s6TR3V0JXdpmsdHofrSK+tbzz7oaLvPH3ZPYk9M+Wx0PbgHHXzwOcG0brXYjSVpOZSYTOVnkHQkSsGv8NbIjUbT6v2m1fzEUenO5K6lgtf4XVNYVSTwgxmMsQddDz7ROMbYRan5z2y59dTOkMVxzyZT7mdu/v1Fjx6/9/lr6//k1me+0iFK+DARfS4INKyx1ESRGczZpdPZ8tzYt5a8+pNrqvMsJ9yDYhkSCvDt5EWry/pJbHn2YTQrWh13STd4BFIc2/o7ipqfCno5SO8D4DfIZgm5HP9DAC5y4dDs2bN/MzIytl5KuZ9ltmStqAYaIqpNGzCTz6NCyBqQYyYIMQF0zAwSIgyU1QNbFbil0x0q8P1fl4r+Kf/935948sMDH07l+nKlM2445vWJtLhRuvLl5bFgm/u4JVJKGp+fKj1vjquA2/TjV9zd3a2Gh1eW3/a2t1/lOM751lofgNvieNp1E8r3y3dff/31v+3Oditg2GYHMu7I3K03OGn1xvJooJWaeiyhzwUsJAlr8JFc73B5YGCBRN92luSqJGfyRgjwlEBHRChpi5TTDUHdKAFgLoMdgkMJJBVgGShqjtxDrcEt7SiU9Z/g4214e94ii0qneSKy1z3whd1BXClpVV/QOJV2RWncW//IarO+ut9ag8sqcstByBWtOxGwLBc9xEnRsaIuSgmxNzx84Z5C0BvCfKqGMZlkypXF8fJDbz0wLFFV3/tNSV7StPM3MxGBmBp7tVXHD3OABfMvpZJH8yRRf3CYRQCO0hzQ2PvNTbphHh815vFFyeEA+K23PvGH40Fp8JM8SdI8mY6upHo2/dxHAVwfy9snu4Oqer8dO3XvNwGUaC0IHFbHn17vN+mI5apF7zficIxsMe0xdnY9qjZ2FT8C4IbqMVYWYkSPVFzI1JzFGW1ASqYdUmtu/f2Xr2dtBy3hWQnMtqDXU4GXpjqTe42PljgqftEAbrPndTqjmwu3jO+790cGeEACVeW+eodNqIp+eOmkvd/iotW+viWKeTcWrR6qeDKrhCYtwwwGKaUwFhwC4DcVcPxHABwAdHd3y3w+r48++tg8QPuxNdYSCYoTuENOPfHNEIU5bTUsLRarxcJAE1UqCUccv4+BLgQxjpo914IbwqKwJt3RoUql4rqRrc+/46KLLtpyxmVnJL/e9/XSGTcdu9hJiqtJ0Gy/EBhBtM1Fk63hv5pR/7ivvnX46W3plzY8PGxCYoEv+76fcV13b8/zAlR1KYhcSEYp5RijPWvNR0KBwhByAD44e+tAKq3eUh4NtJomUDOzSXc5sjjqr/5Q90/Xbnevt/rVtMA9kGI5plPnikigHJgKqxOUBAPQljFuDYgpCoq3GkyATseB5j8jsMfj7av+VltcOSxplZol39I1K9UxNtK8oLGTUKIwWlpXz7jqXVZEZNY8euFcoEUngtBlJcol/3eeDB4CGnu/OY49rmNWR2JsaxP2B3CocOTWvd+kbNGrTcjxsVIhsOKOViKZTVgU15G93+jmDDKOZ0opZGG0VDRFG+6vv1K/koj6zGWD2SQsji2X/KZ90QCQNQzHUfOFpPmT3Q7MgJCEUsGz5ZJ9EADW96+ffIEU935Ldk7DjQaJUgs3WstQQPUYm/d+A4VjVI4Mx8itZfvxGIsFzzqKGsZIlGNm0KUP/uE3L5F7PZ5OJ/YplwLbNHWDiLQ2TETU0ZU8mQSdzJYr7cHKpQCxd6G2ihMYYD17XqczPloc8jqKp2SQsTHDj9QVYVWYfR96LZRcOHnvNxbQBrCTFa2OctqUenQaQpM4mHY4gB/8Q2Nw4SQd+rHLZXO155UDZpZsLVfL+00rqX9FfGKiLXxvTG2crvb/cXpAYwFlbYxla+G4riqMF775yfM/tuyiiy7acvYlZzsrz1xZPmP1sf+fSom1sDw7KGtLM0zgjuNWypHSMm/2RkpLLjph+HfZwW61jQDBAOgnP/nJFmv1Eq31hmQy6SilBEWmlBLJZNJh5ueNCU7K5/OPbNiwgXK5Yf0fhx5zudvpnFAamUEBaAYrSeSVTJGk+jAzaH1m4Y7pFlCJaZgBFH0fMuodMB13ZXW3bhuV4iKo1g8DG4AtZiUceOYBlINu9K3aUF9XMC5pRUwrGNRaJFD0wUKsrmZcDQQ1LK8FuDiqc1Zynva1bVgZE2wi6TAIt8Z1AutEHqxctZxt687fxbEyF8umtvdb2Pmbr70/+wop6OBy0QdzQ682sLb3nviaT/yNW4hk4gnV+P4jxbGyR1LI5t8R22Q6Acv8i+UHfOav1fsbQKjknL8g+cZk2n1Z0CyPr2rtGgSa/bK2gaetX26+BX4QSCEss73rrQd99mmeROTTsKBSMnSjtSx8Han8AvNESzda/XcdqVV32cU9JJl2Xxb40xyjP9UYpWW2dx2zd23qSHyiQ0NZec7BlwZgfCeZcim8z1s6QAgACqMlMzZS0oXRkhkbLenRkZIO/Mb5jZkNETBnl06nMFa+fqsjl6x4ca7Y399f20Q2zl1TtARpR0xatDqsPvIMyuV7AISNjVvF5ufO/gNsLDRBK6GJgLYA4xBkswK9MysVuMMBDsjZTCYjf/azO5/QOrgzqlxiG8QlsaqySiTCkfpxIkXAVPLiQlAzlZ9NSP6rQK5aaKK1VkIIIgpKhcLZn/3M+R/KDmYlwHTpOZcGZ6w97iK3Q11qAwujrZ1KYdj8MWEWYZC0XC4GJ/zPCT97dIaCkqY3STabFddcc80T4+Ojh2qtP2MtP8TMW5l5jNn+1vf9bxkTHHzNNdeEwfHMevm+W469JtHpvH1G4Ba7wLqUCDxz4XlHDP4+7BaQ2zEFlXNRh4C3rn0KAS7CrKQEcTA9kJtYEU+iYmWADZgtUo6EqwSKwbfwlHMU+lb/oR7cmEF91Gdu//1FswH0los+WgkhyiX/D0VTegAA+jLNJ79MhQrQCiEbE6yj/Ykg0GSsbtL7LWcHHvrifGY+MswZQ2POWNKhINC/fXRz8GhN77dIrp7uSB3XOSvpWmZdLVcPe7VJQNCqajFLi7ACgic3/Nlafsp1FbhJwJaJWCoBULgyrxa6VKTnEssTSQc8hTCJQpeLACBAzTcGkVRSWGBt/fFa+xCHDTIZCcaSCTcaWrnRAODWqtSRSe/JWK0qJC1PpJzmuYrbNEYhrA3H2EzI1NOTM8xZsfHZ8iVbnx9/pHN22rHMwRReEEmAil8jt3V1ZwnDzCbdmZSuq+zY1lL2mFf81yl9L/toKXabN1zX0KqKVjd9Gi0SkgHcgXfdXkBUTKHJMx0KTXpXlgF6LBSa8CQJ3wYgvAqvfWBPhKs78Q8EuAm5ujH6Yq0DstZSdZJ2DGoN+WuRAKUW5GqZWi2gTfysKseNtdbadV2ldfCHUrH05v7+z37vjLCmpD798kO63rXu2OvcDvWJoBgYWBBtQ6v1ME+KrFRCeCVz2teWDP9sB4BbZdLJZrNi1apVY1deefkXr7rqioOMSexjjLNPEPj7XXXVleddM3DNHwHgPTcevcfcWS+9zU2rvvJo0LKieSv26SalLI7o345C/E+Ws6JvR3cL6MuHIJe5qR8j5ZWYnXQhicJWGWxmBHbxKjH8nAaBkHYkUo5AYIeh/R6cdON5+Gi+FCm16laa4SpcaxyR6kjsGgRGRytVW9kIOpF0LYFuqTCuJg9ptcuKgaO9YhCHZCb2xWwcV6I4Xn629Gzwc6Ch9xu60qKnozM5SxsT1J8LEbSbdCwsrcv15nQo5KhlfySwzBi2kbPJAuFjRiAxPlYMSqXSLSGZbj0hD/CA7OvLGyI85LjKRiyhch7h/iAKY6XAKwW31ItuenpyJpvNCgIW+15gJ76nbdsqxxsvBWTo5gjgptH7DYyMvxBKvBq+NqFvkG3tFu0nMABFxZWnIT+PxygkHeeXg7g+4I4ZI1NLIRMRuB/Amb25MgfirV45eHr2nA6HLRswm8lUr7VuSBhmaGYglU7KzlkpGQTmbu0HRxz7yo99LstZwcyN9TKz0XW96rg9IehAeDqqKNLkujIAyxNFqyfLW6ukZPDDkGQBmMZ9Rve1RYCUUiB5YO1n/wExuCiWpAHQ3XfvdutRR238VSqV3t8aYwiQ1YWROXqKUSUyYSkhonhc3P6GOX5vI4+SiOpWCggRuoNDpmisEJLS6bTyyuXV5XLhrK9+9asbz7jsjOTKM1eWMze+eaFMJH7iJMXrvNFAC0FqmzurEUwi7ajSqPeBry2968a4Uv+OFux0d3fL4eFhnc9ftgkIc9yQD9eb71p7zPGk5CXKFS8tjQbamak4JpQoC2343B0mLGm2ruvLhzf/KTe9G9ed8AiU/CTSYgE0A76J2qjTFH3UmACSUELAleHSrKRL8MztAF+Ck25aF8VhQrVkE3dWpTgx+NR0RxKBp5WQop6VuwjFvQ1lqGrdk2H9x3m7uUfOnpt+Wanow03UNmawxmLWnDSe+/voYF9vbrxaQFBhcqBTE2kXXjlwGs6F2Q1d78Ga6s/EqQk3PpjdgyQdbY0VrutUPmytRUdXClufH3/k5NfnnpxMJFPNwKzBL92kc7osSCGrziXe38jz47868XX//UT1/mIl53UPiYPTHcn9jLFwXbVdC2e2Funw/B9d8przn5jq/KvcaBbgkzEnqbDVC7lLsyCAKwQKwUaUSr9o6UarXgDslDEy0l1JjG4u/Or413xi0jHmKGfD3MeP/37Vb7JHwXZd0jkrtZgBlEs+rLaWKQKYOqoKQEglyU0o6bgKxXEPQaCHrW//37Gv+Hi+ssChPpNrVlwhFnWoxArMTSYx4gGuaH5dlRAo6QKUGKxjfk2+r8rnHoYUAlK4LUvuGRZIKqAYHAPg2plc550CcLHYZHg4r4056gKt9TVx4eNmDBRC1IBcJJGc+C+FHQFDQKMI8KgG5ABo100oZjbFQvGzX/7yBRcCQFT9vXzaqmNPka74HkmaG4Lbto+dGTo921GFrf5Xv3H8Xf/v7EsOci4958FgJ1xGHh4e1tlsVjyzxzPy0nMuDfJ9efO2m968m3QTWSnxfliGVwjMtFIB6vzvHbMcWRgNrjy/d/iOHSYsaQVyoYaRQPQN/GT5VWB5OkAnAngdEmoWlBAT0XieCGZMzLJA2QDW/gVlfhiCbgXjFpx84+8rR8hnRKs+XpF7T39z3bkJQbTn2Ejxj1obJmOpKhzJUioxsrnwfLDl+Z+FbsjmjSPXR6DgSnmwZTwd+CZoYM8MUyr6CsxXNWN/qx7Ipgl4ydhI8Y/a1J0LMytXifGR8jOlsc33VbO/Rf2LCDnASSUOTKbdZ0vjnq4urszMxhijAL4ijOP0NxXJ1LFBBMb8fGxr4Y9GG7a152KsMQpAw/7ikmepdOJg6cinS0VPb0ssu/7etMYqQdM7/5rJlLAIxeCPMNbCNPVQGbhSAXTjhBtter3f3HTiYOmIHTNGy8YYqxC2gJpyjFQBudyfABx/+1NfPgEk3kvgwxMpZ57jKkF1AGEtI/A0dKBH/XLwWODrO8C46ehXfOyX8X0IZIkmU6ZOFDneH2X9RxhrYJqkkRAMHKHAuAsn3/h8pV1R6x1HQhPxEEa9P4CZJvmGLQq+BLBgSuBsDIfuPMtms2JoaEgEgX0glUruL6W0UkoppIQQAlIICCEQ/18Q1f4/AsX69zFjE+EXaokI6XRaaG0eM9qe841vfOWnmYGMm+/L+wDobauPu0Al5PmsLaCtEQRJAARVldKoeh/Ko6r/H/8Nh4rDWa70xoObvn7cHSdmB7tVrmfYVNxY2awIe5qBtwcOssjS0NCQGB4atrEs9oQbTpiTcP33CuCjybTc3Yz7VoKhBAlBgAJDECApegUgRTiWys/CchXWdQjEdgsb3q8wNLwxZI2w2NlW30zyupN2B/E+IH4lgD0QYFcIpBCevg+iUcA+CxJPw5jfYdbs3+O4Kwo1rqn8BsI0wTnLWdHzR7ibCrCd7jx6mb+55nv6kzuPxl+1u55Cjl6xdU98MwH8Di/z5zV8339y59GTv/sdzltysdd8Is+KoRbnsgFApzuPxh/ZXff1NT+Xgd9k3U53Ho37m3lhk2Mv2ec8b8ZfT7TPZtdlsv2F1wGo/9y22raePy47I4nRvzN272p9Hp1jhCW3+MDMntF/hjHGFY5iEcjdf/vm/KDsv8ayfSVAC7RFCpaZBMakI5+VEH/0injq+IUfeaZ6H3nkxXTv8fC6dicxmpr6uh5/i48p6mE2mRNcPDNGk+77mTHCqwAsuWVG12unAlzcxuWQQw4/Ppl01wkhjOu6UgoJEVbAhozBTMoJgBMizGur2uqBLmSDpF3XUUJIsLXffe654BNXXnnx6LnfPDdx8XkXeydf+5ZXOEnne26HenMwFlgCkyAiERGKmQIcwZpESkntm994TnDY/KGeIpBrDgwDGVnxQcc+/mYFhPsB5DdQd/S3CzYt4HzdZL1s1bJXC2HfLpnfnUzLl6KsQcYaRZCSAEnh+U8X4ASz6ZrtyMLW8lmfPvqnPxjgjNymbgHbw+eGuiWqFwYz+nxWYGhIYKjHIpezaFvb/s1sgAdkBuuZpikIC3sAZmVPDyzRv88zQzv7ABMgd+iaVCq9VAgyjuPKGNiqQS4GNRkDWh2Tm2BwZIQQIplMkjHmd9bwR77znYtXgyE4LEvBb129+G0kcbHjyF11QWshoGIQ2xaAA4MdFwzQWGk8OOS7Jw4+XumRVA1qhdKrsPm5p/HRe0vb7N4dPCPJI39/jWOpVwpaKsFHJjuVg7IBaW0ckJASpMCYKcAJWNPZ6cjyeDD4mbcMvfkFB7dmYJfPiCkLqW5awMgsZGA72XHFNTPFQzGDY0y5v0n2tb3nMtnnaRuu0/bsj3nHzie0bd8zTZlvyTP7fv8Jx4h6NjZ/aD1VFUMObQjYtGkRZzIZS0Tbyzp35nWd7r5nxgyxE2NwseXzeQZAvu99SAjxZqUcN6poET67UZI3c1jpNUYLUdWdu9K8FLDMzIlEQlprbdnzvuWVCv0rV67cmhnIuHnK+0evPHqXk+ct+YpMijOtp6ELgaFtSN6uv7xCwEhHqvJI6d3fPXH48exgt8pRVWfngYzE+oWMvR6+EC/d/QBcvvxRAL8D+HeA+IsCbySJsTTbEjEbloY6ZCKhYDod8HyH+aUu4VUOYaG3edMil8SeskNBWAZ7GsFooCVBKrEdvn8GS0cg8EzZgt4PAOuxg3LetuuxeWEBdnsnlR25v+09l3+lsezAJdNOW9b/k4yx6nyIMYPatf+k13Wn7ZteiC8hZnEHHXTQR5LJ9FeJSCcSrlLKaeqerHFRhsyNSQjjOI5yHAfWmmGw/eQPf/jDX1R3+F1+05ITpOSvu0m1V1DwjWAIGVUZJJpgaTNlcGDojrmOKm31Lrh4yZ2fbpoOEMeWVi5fhi53NQIDOCKqg8WQxkAFFg4hUGBWxFCClKtIJBwBVxEcAlxmKG0hAwMFaCmYFJFQ4CiphaEASBEytpkwOGLoWXOVKj7nfTK7ePiinSwsaVvb2ta2f20XZXycTCYj8vm8PfDANwwmk4nuOB7nOApCVLkoa+NwLIQwUkqVcF0YY38P4AtXXLHyRwCQzWZVLpfTi69b/BLHpQuUI97JhgHfhi5JVAHVNgIcGDo9y1HemH/7xUvuOC472C1zvcOmCVWmCOgcFErrkVR7wtdhqSBikgShCOQIQBGFQEUMh8EumBXBOgBcweQSkQMWKsrSlDQBZtsKcALWpDqU1GX9IJM9dNGmBdyXyVv8k61I29a2trVtR5l4gY7DkasSzPoMzytv0VqT7/vW94NKknZc4cQYY40xGsykpFLW2o3lcvnTzPrAK65Y+aPMQEYCwIYNG/j4m5Z+QLniIZVU7wxK2prA2G1pc9P0pC1bJymVX9J/cHTwdmYAQ8MWzf3AjMHusFeZpB9GUmQBCisKVKpxMKq6vUb8k0gQRbgXlqLa0d8LC0mwmjVbOjvXO6zzFfdg29rWtra1AW57zWYyGfHwww8/7fvemVoHIgQ4n33fh9YaWhtrtDYgElIqZYzZ5PveF9jq111zzVUXXHnFlWMAkO/Lm2NvWrJ47J2Fe5y0vJiZ5/tjviEiQaAdMiZmttIRxJbHtc8nf23F8HN9+YyYVEofgh9A/o9Q9McgSbZgetXbzl9dMEyq05Hlor4od/RdD2UHu1W+7ZpsW9va9i9u9EIfMGwJM6xf+9rXfiaRSH1eCAqUckRURJgcxwHATxOJ71mrf7Bu3bpnqz//5uuXvlEqfEpKOkEAsJ42Is77rrggESkGt81FCTArCauUEH5Br/juCXeumXYZrjgW9+Pl30GH8z4UwsapMnItOnFxOGIoCv/vAnCI4QBwo585YOwQFyVZk0wpqcvBo2rLrm9YBJi2a7JtbWvbv4OpF/qAw8PDOgK5Lyxa9NpXJJPJM4lC3CiXS/dZy98HTP6OO+4Yqf5c7w1LDyKBjxD4bdKVQhcCKwBIQRI7cq5mMEkyTlIqf8Q767sn3LVmRjUmw1w3Asuvo6zfA4IDTKtRzE4hbxQ2jDUmMGd9sS/vZ1oVQG1b29rWtjaD22HHJQBYtGjRVY7jBq7rXHL/fff/rH7yfdMNS490gHMBPsVJKWELAYjYCJAUFeYVMbXtZHDgMB0g2alUadT7yPeW3fn1bSqgXFFULrsCne7pKAZaEqsXmsEJC901T6nCc94Xv7J08DM7qhh029rWtra1GdxkPCl6Xb9+/an1cHvQJcvSagGWE/gcIahXOAKmGCAY940kkoTtqwPX9IRCcLOJDkeVR8sf32ZwqwZxrS+AJ/pAkC/4BWY2iQ6liiP+I38s/P1zmYGMzPW0425ta1vb/n1M/EOOms2K7sFuiUymZuLf/7ql+x14w9LP03z+FbniauHKXvYtB8Www/P2FjidBAwsCbCTVNIbDT586bI7v7Jd4NaXNxjICLz3lg3Q9vKoSeALx5w4Vk3awLI5M9+3wY8gt+2abFvb2tZmcDt4wp0ox9Q7rJHL2eFIjfiaa5e8HEIcr8AZMI6SSaXYM9DFwAgCnApj2zlzMzMb5QgpBFm/GJz5/eW3/2iHuPLWLwyTAH6MHMr6VEhKwUSdqXc+PTbJTkeVtvqf/frxw4+E48m3XZNta1vb/q1sx0+2UQsG9EdN6XKNSdEvX7Xs1crnoyXzMgId4aRVh7QMLmsIhpbEYZp3VStaQlxLsTqWtn0xOGJoNy0VjN2qPfv2y1bcfvMOjVPFsbjLl/bLrkRWjfnaEVA7NQYHNqlOJf1C8PM599551KL+DPVRvlXuXtva1ra2tQGu4XMMoD9LWLSBMH8jYQhAf/Pq8LvcuGKPhG8OFkAPEbol0/5OWilpLdg3IG2NIwAiEhJhIlsMUjsF4MKeEyY1y1Ha078Oyv5pPz5hcP0OF2EwCP1Zwt73pKRMPKocsZcTGFZEYmcAnGRm1yVLhLItlQ/41vK7n2woCN22trWtbf8mpiqTcGz9APIbwv+v31hboXrTAkacQ0UAkKsFsxww7/LFswyJVyhXvJYsHyIIB4uyWYiU6hKSQNoCnoEZDzTBEhEJEvTCiTCYDUmSibRSflH/ZPzPz/1H/pwHR7qzO0FhSGAMbBDou72Ay5d8EFKtgbYGOy/2aZykUuWt/of/d/ndTzYUhG5b29rWtjaDm8IGuxU2z5vnePpFBLunsLSPFHi1INqXmF8pBL1IpmTIorQFBRZkrZUgK4iFCNUiJMEhs0LI1ChKTt4ZDA4AC4JJdCjFgR6zPj5++YpbvwuETTB3KsuJXJWJy5etdGY571LjgVaC1Q5lcGxNxyxHemPBDd9eesfJ7ZSAtrWtbW2A+/6Sl0PJTvgoQlkFUh2A7YBEFwTPBsRcGLsAghYAeBGYX0QCLxLArkLQbHIlpAp18MIyoC2EthCwRoBYgEmABImoyGIEUhLACwJwDAZglCuUm5QwnrkNpeBDl598x2OZgYzMvxBVPaK45OwfPTJLp8zDjhJ7Kl9bJUjsCIATYOu6gsjaZ6WVr5t33y3PAy9Qh+62ta1tbfsnNYWE3B0sPoYkn4BkQiIwIeeRAlCipuMnGIBlwBrAcPi+FBgGMYuwCAiFBYYJFUn/PyqXHAyGgSCV6FTKePqvQSnov3Lprd8HgO7BbpV/oZSFkaty5MybtnZecfw7oMQwBKFSbHk7R0mCrFCkgjH7nm+fcPumzEBGtmtNtq1tbft3N4kbnvgLbnh8AKfscycsO7DYG0nlQlugrAP4VsPXFoFlaGsRGCa2IAuErdoo7HBDENH7Sv+1mqrCEfuqYVl1/6/8Tf1nqv7fsO/69wwmwAgB6XY6go0tsOZv6XG86+qTbv1Z2JE3K1aeufKFBYD8BsZgt/JPuOPp5PK9n1OzEssoMFoSZFgzMq4dOfFeUNWGJu/Dcev0bNcpj/lf+P6KO7+XHexW3162rg1ubWtb2/7tjZDNCvTnuOKmu+qEPWH5dDBOgyMWQQnAM4A2FkQW4BDQMAE+AhNKvgkXIU+4GlHlftw5LkomsCUClJLSTUmYUjAuJP3Y6OAb1y+/40kA+KdgNoPdCr3DesFPln5FzXb/S477gQs42+KilGyDzjkJxx/18z9YdltfFHdr1quubW1rW9v+DQEuNs4K5DcQYgDIdivsM7sHjFMBHI+EfDEkAb4BBYYFYETkkhQEesEBjsFEHBVchnSSCkICtmz+TMxXkAi+f/2yO5+qANs/TwV9wkBGoC9vdr966Xfc2e771KivHbB0CDRdgBOEoHO245hx/44OEsvm3XdLkOsHt6uVtK1tbWtbPcDFloUAugVyVQq8gcxsmOBIsF0OxptJ4JUiJSEMgwILEViWBBOxKRIgIcJO0rSDAI4JlonAkomJWEglhJOQkJKgi35JCTHEZH8SCKy6ZcktozGwLVyf539CsUUF5F6aX/rlZMr5mCoFkJZ1QkBNBnAS1joC3DEnIfWYt7ZUGM3k++4tZ7OgtqikbW1rW9smA7j6SRgAqt1631ycwHz39YK4R1p0E3CAUPQilVQhszJhWoCwFsIyC4QsKwIvEgIQHCpQGgBOMEsGiMAxwDlMQkoioQjKJUghAG3Bvn5OEO6DEGsl4da1y9Y+FZ9i92C36hkatv/UE35c8YVy9pUDS97rKPp6Iqm6ZCGAIjYuQIpAKo7NwbIUQCqlhCMA6+tv/OT+Wz+KHGw2C9EGt7a1rW1tmz7A1U7G+SZgBwCXL56VctS+AA5UTAcQYSEx7yXZLpCudIUUFdel5MhtyQzJdQBHgBCAJIIkmnBHagsytkDAX4Xg30qiX5IQvxCu//Bti2/bXCGe2azYsGgD5f+vNfOMcuRefdXx+ySSMqeYT04mpKu0gbQRi5ME16Houtn7ZGD6rz7htlvidPu2W7JtbWtb27YV4JqB3fyNhE0LGE1EG/MuXzwLCfclwpo9ydJeUvDLCdhdALtJ4jkC1CnBKRniGojYKFBZAAVB2CoFnhVMfxMCTym2v3OJn/q77vrzhr68X32cLGfF0NCQ6Bnqsbnc/+FyVHHNSgBvuHHFwYrN213mHsH8MkVQStBzSvAvpaD8jb9cdyNysJFgpl1jsm1ta1vbWtj/D8fryIP5sbyFAAAAAElFTkSuQmCC" alt="シャインテック株式会社" width="440" height="96">
+  </div>
+
+  <div class="console">
+    <div class="console-grid">
+      <div class="cell hero">
+        <span class="lbl">現在在庫 / 判定</span>
+        <div class="big" id="k-stock">—<u id="k-stock-u">kg</u></div>
+        <div id="k-band"></div>
+        <div class="note" id="k-stock-note">—</div>
+      </div>
+      <div class="cell">
+        <span class="lbl">在庫日数</span>
+        <div class="mid" id="k-days">—</div>
+        <div class="note">基準消費 <span id="k-need">—</span>／稼働日</div>
+      </div>
+      <div class="cell">
+        <span class="lbl">次の注意日</span>
+        <div class="mid" id="k-risk">—</div>
+        <div class="note" id="k-risk-note">—</div>
+      </div>
+      <div class="cell">
+        <span class="lbl">直近の棚卸補正</span>
+        <div class="mid" id="k-yield">—</div>
+        <div class="note" id="k-yield-note">—</div>
+      </div>
+    </div>
+    <div class="status-strip">
+      <span class="dot wait" id="st-dot"></span><span id="st-text">データ読込中…</span><span id="st-pend" class="pend"></span>
+      <span class="spacer"></span>
+      <span>表示単位</span>
+      <span class="unit-sw" role="group" aria-label="表示単位">
+        <button id="u-kg" aria-pressed="true">KG</button><button id="u-t" aria-pressed="false">TON</button>
+      </span>
+      <span class="build">build 8</span>
+    </div>
+  </div>
+
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="entry">日次入力</button>
+    <button role="tab" aria-selected="false" data-tab="trend">在庫推移</button>
+    <button role="tab" aria-selected="false" data-tab="risk">納期リスク</button>
+    <button role="tab" aria-selected="false" data-tab="sum">月次集計</button>
+    <button role="tab" aria-selected="false" data-tab="cfg">設定・棚卸</button>
+  </nav>
+
+  <section id="tab-entry" role="tabpanel">
+    <div class="bar">
+      <button class="btn icon" id="w-prev" title="前の週">‹</button>
+      <button class="btn icon" id="w-next" title="次の週">›</button>
+      <button class="btn" id="w-today">今週</button>
+      <span class="wk-title" id="w-title">—</span>
+      <span class="spacer"></span>
+      <button class="btn" id="w-fill">未入力を計画値で埋める</button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="legend" id="legend"></div>
+    <p class="hint">
+      <b>入力方法</b>：下の表の白い枠のセルを直接クリックして数字を打ち、<kbd>Tab</kbd> か <kbd>Enter</kbd> で確定すると自動保存されます（緑に光れば保存完了）。全角数字でもそのまま入ります。<br>
+      セル間は <kbd>Tab</kbd> / <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> で移動、<kbd>Enter</kbd> で確定して下へ。Excel の1行（7日分）をコピーしてセルに貼り付けると横方向に一括入力されます。<br>
+      薄いイタリック表示は<b>計画補完値</b>（未入力のため設定値から自動算出）で、保存はされていません。実数を入力すると確定値に切り替わります。<br>
+      棚卸で実測値に<b>強制的に合わせる</b>場合は「設定・棚卸」タブから登録してください。その日の在庫が実測値に置き換わり、計算値との差は棚卸差異として残ります。
+    </p>
+  </section>
+
+  <section id="tab-trend" role="tabpanel" hidden>
+    <div class="bar">
+      <span class="lbl">表示範囲</span>
+      <select id="range-sel" style="border:1px solid var(--line-strong);background:var(--panel);border-radius:2px;padding:6px 10px;font-family:var(--num);font-size:12.5px;color:var(--ink)">
+        <option value="60,90">直近2ヶ月＋今後3ヶ月</option>
+        <option value="120,120">直近4ヶ月＋今後4ヶ月</option>
+        <option value="0,120">今後4ヶ月のみ</option>
+        <option value="9999,9999">全期間</option>
+      </select>
+      <span class="spacer"></span>
+      <span class="hint" style="margin:0">実線＝実績・確定／破線＝計画補完／◇＝棚卸（縦の点線が強制補正の段差）</span>
+    </div>
+    <div class="card"><div class="body flush chart-wrap" id="chart"></div></div>
+    <div class="legend" id="legend2" style="margin-top:16px"></div>
+  </section>
+
+  <section id="tab-risk" role="tabpanel" hidden>
+    <div class="two">
+      <div class="card">
+        <h2>在庫日数が下限を割る日 <span id="risk-count"></span></h2>
+        <div class="body flush" id="risk-body"></div>
+      </div>
+      <div class="card">
+        <h2>不足解消の目安</h2>
+        <div class="body" id="risk-side"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-sum" role="tabpanel" hidden>
+    <div class="two">
+      <div class="card">
+        <h2>月次集計 <span>生産・出荷・月末在庫</span></h2>
+        <div class="body flush scroll" id="sum-body"></div>
+      </div>
+      <div class="card">
+        <h2>棚卸区間の実効歩留り</h2>
+        <div class="body flush" id="yield-body"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-cfg" role="tabpanel" hidden>
+    <div class="two">
+      <div class="card">
+        <h2>計算条件</h2>
+        <div class="body">
+          <div class="fields">
+            <label class="f"><span class="lbl">歩留り</span><input type="text" inputmode="decimal" autocomplete="off" id="c-yield" min="50" max="100"><em>生産トン数に掛かる係数（％）</em></label>
+            <label class="f"><span class="lbl">計画生産量／日</span><input type="text" inputmode="decimal" autocomplete="off" id="c-planprod"><em>未入力の将来日に充てる値（kg）</em></label>
+            <label class="f"><span class="lbl">余剰・パーツ品在庫</span><input type="text" inputmode="decimal" autocomplete="off" id="c-reserve"><em>判定から除く分（初期値＝1日の生産量 27,000kg）</em></label>
+          </div>
+          <div class="divide"></div>
+          <span class="lbl" style="display:block;margin-bottom:10px">基準消費量（稼働日1日あたり・kg）</span>
+          <div class="fields">
+            <label class="f"><span class="lbl">内堀</span><input type="text" inputmode="decimal" autocomplete="off" id="c-need-u"></label>
+            <label class="f"><span class="lbl">社内</span><input type="text" inputmode="decimal" autocomplete="off" id="c-need-s"></label>
+            <label class="f"><span class="lbl">その他</span><input type="text" inputmode="decimal" autocomplete="off" id="c-need-o"></label>
+          </div>
+          <div class="callout" style="margin-top:14px">合計 <span id="c-need-sum">—</span></div>
+          <div class="divide"></div>
+          <span class="lbl" style="display:block;margin-bottom:8px">判定しきい値（在庫日数）</span>
+          <div class="fields">
+            <label class="f"><span class="lbl">納期遅れ発生 &lt;</span><input type="text" inputmode="decimal" autocomplete="off" id="c-b0"><em id="e-b0">—</em></label>
+            <label class="f"><span class="lbl">ギリギリ &lt;</span><input type="text" inputmode="decimal" autocomplete="off" id="c-b1"><em id="e-b1">—</em></label>
+            <label class="f"><span class="lbl">問題無し &lt;</span><input type="text" inputmode="decimal" autocomplete="off" id="c-b2"><em id="e-b2">—</em></label>
+            <label class="f"><span class="lbl">安心 &lt;</span><input type="text" inputmode="decimal" autocomplete="off" id="c-b3"><em id="e-b3">—</em></label>
+          </div>
+          <div class="divide"></div>
+          <label class="ck"><input type="checkbox" id="c-autofill"><span>未入力の将来日を計画値で補完する<u>出荷は稼働日のみ、生産は毎日。表示は薄いイタリック。</u></span></label>
+          <label class="ck"><input type="checkbox" id="c-thu"><span>木曜の内堀を1.5便（×1.5）で計画する<u>現行シートの計画パターンに合わせます。</u></span></label>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <h2>棚卸・在庫実測</h2>
+          <div class="body">
+            <div class="callout">棚卸を登録すると、その日の在庫を<b>実測値へ強制的に合わせ</b>、以降はそこを起点に積み上げ直します。計算値との差は「棚卸差異」として記録され、集計に残ります。</div>
+            <div class="rowform">
+              <label class="f"><span class="lbl">棚卸日</span><input type="date" id="s-date"></label>
+              <label class="f"><span class="lbl">実測在庫</span><input type="text" inputmode="decimal" autocomplete="off" id="s-qty" placeholder="kg"></label>
+              <button class="btn" id="s-fetch" title="その日の計算値を実測欄に入れる">計算値を入れる</button>
+            </div>
+            <div id="s-preview" class="prev">—</div>
+            <div class="rowform">
+              <label class="f" style="flex:2"><span class="lbl">メモ</span><input type="text" id="s-memo" style="font-family:var(--ja)" placeholder="例：期末棚卸・現品確認"></label>
+              <button class="btn pri" id="s-add">強制補正して登録</button>
+            </div>
+          </div>
+          <div class="body flush" id="st-body"></div>
+        </div>
+        <div class="card">
+          <h2>書き出し</h2>
+          <div class="body">
+            <p class="hint" style="margin:0 0 12px">日付・生産・内堀・社内・その他・在庫・在庫日数・判定を CSV で書き出します（Excel でそのまま開けます）。</p>
+            <button class="btn" id="csv">CSV を書き出す</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="config.js"></script>
+<script src="sheets-adapter.js"></script>
+<script>
+"use strict";
+/* ═══ 定数 ═══ */
+const BANDS = [
+  {k:"納期遅れ発生", c:"b0", d:"1日を切る水準"},
+  {k:"ギリギリ",     c:"b1", d:"設備停止の余裕なし"},
+  {k:"問題無し",     c:"b2", d:"適正下限を確保"},
+  {k:"安心",         c:"b3", d:"変動を吸収できる"},
+  {k:"設備メンテ可能", c:"b4", d:"計画停止を組める"}
+];
+const DEF = {
+  yieldPct:98.5, need:{u:22500,s:9000,o:3000}, planProd:27000, reserve:27000,
+  bands:[2,3,4,5], autoFill:true, thuBoost:true
+};
+const ROWS = [
+  {k:"p", ja:"生産トン数",  en:"PRODUCTION"},
+  {k:"u", ja:"内堀",        en:"UCHIBORI"},
+  {k:"s", ja:"社内",        en:"IN-HOUSE"},
+  {k:"o", ja:"その他",      en:"OTHER"}
+];
+const WD = ["日","月","火","水","木","金","土"];
+
+/* ═══ 状態 ═══ */
+const S = {
+  db:null, ready:false, offline:false,
+  settings:{...DEF, need:{...DEF.need}},
+  stocktakes:[], months:{},
+  unit:"kg", week:null, tab:"entry", range:[60,90],
+  today:isoOf(new Date())
+};
+let stockCache=null;
+
+/* ═══ 日付ユーティリティ ═══ */
+function isoOf(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function dOf(s){return new Date(s+"T00:00:00");}
+function addDays(s,n){const d=dOf(s);d.setDate(d.getDate()+n);return isoOf(d);}
+function dow(s){return dOf(s).getDay();}                       /* 0=日 … 6=土 */
+function weekStart(s){return addDays(s,-((dow(s)+1)%7));}      /* 週は土曜始まり */
+function fmtDate(s){const d=dOf(s);return (d.getMonth()+1)+"/"+d.getDate();}
+function fmtMD(s){const d=dOf(s);return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";}
+function diffDays(a,b){return Math.round((dOf(b)-dOf(a))/86400000);}
+
+/* ═══ 表示整形 ═══ */
+function fmt(v,dec){
+  if(v===null||v===undefined||!isFinite(v))return "—";
+  if(S.unit==="t")return (v/1000).toLocaleString("ja-JP",{minimumFractionDigits:dec??1,maximumFractionDigits:dec??1});
+  return Math.round(v).toLocaleString("ja-JP");
+}
+const U = ()=>S.unit==="t"?"t":"kg";
+/* 全角数字・全角記号・カンマ混じりでも読み取る（IMEが全角のままでも入力できるように） */
+function normNum(x){
+  return String(x)
+    .replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .replace(/[．｡。]/g,".").replace(/[，､、]/g,"").replace(/[ー－—―‐]/g,"-")
+    .replace(/[,\s\u3000]/g,"");
+}
+function toStore(x){const n=parseFloat(normNum(x));if(!isFinite(n))return null;return S.unit==="t"?Math.round(n*1000):Math.round(n);}
+function toInput(v){if(v===null||v===undefined)return "";return S.unit==="t"?String(+(v/1000).toFixed(3)):String(Math.round(v));}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+/* 凍結された同期データを、書き換えできる複製にする */
+function copy(o){try{return JSON.parse(JSON.stringify(o));}catch(e){return o;}}
+
+/* ═══ データ参照 ═══ */
+function monthDoc(m){return S.months[m]||null;}
+function dayRaw(date){const m=monthDoc(date.slice(0,7));return (m&&m.days&&m.days[date])||null;}
+function weekNote(ws){const m=monthDoc(ws.slice(0,7));return (m&&m.notes&&m.notes[ws])||"";}
+
+/* 1日分の実効値。未入力の将来日は設定から補完し est フラグを立てる */
+function eff(date){
+  const raw = dayRaw(date)||{}, st=S.settings, w=dow(date);
+  const workday = w>=1 && w<=5;
+  const future = date > S.today;
+  const fill = st.autoFill && future;
+  const out={est:{}};
+  for(const r of ROWS){
+    let v = raw[r.k];
+    if(v===null||v===undefined){
+      let plan=0;
+      if(fill){
+        if(r.k==="p") plan = st.planProd||0;
+        else if(workday){
+          plan = st.need[r.k]||0;
+          if(r.k==="u" && st.thuBoost && w===4) plan = Math.round(plan*1.5);
+        }
+      }
+      out[r.k]=plan; out.est[r.k]=fill;
+    } else { out[r.k]=v; out.est[r.k]=false; }
+  }
+  out.hasAny = ROWS.some(r=>raw[r.k]!==null&&raw[r.k]!==undefined);
+  out.anyEst = ROWS.some(r=>out.est[r.k]);
+  return out;
+}
+function needTotal(){const n=S.settings.need;return (n.u||0)+(n.s||0)+(n.o||0);}
+function reserve(){return S.settings.reserve||0;}
+/* 在庫日数＝（総在庫−余剰・パーツ品在庫）÷基準消費量 */
+function daysOf(v){const n=needTotal();if(!n||v===null||v===undefined)return null;return (v-reserve())/n;}
+/* 在庫日数から必要在庫量（＝日数分＋控除分）を逆算 */
+function stockForDays(d){return d*needTotal()+reserve();}
+function bandOf(days){
+  const b=S.settings.bands;
+  if(days<b[0])return 0; if(days<b[1])return 1; if(days<b[2])return 2; if(days<b[3])return 3; return 4;
+}
+function anchors(){return [...S.stocktakes].filter(a=>a&&a.date).sort((a,b)=>a.date<b.date?-1:1);}
+function dataRange(){
+  const ms=Object.keys(S.months).sort();
+  if(!ms.length)return [S.today,S.today];
+  const first=ms[0]+"-01";
+  const lastM=ms[ms.length-1], mdays=monthDoc(lastM).days||{};
+  const ks=Object.keys(mdays).sort();
+  return [first, ks.length?ks[ks.length-1]:lastM+"-28"];
+}
+
+/* 在庫チェーン：直近の実測を起点に日次で積み上げ */
+function stockMap(){
+  if(stockCache) return stockCache;
+  const A=anchors(), map=new Map();
+  if(!A.length){stockCache=map;return map;}
+  const y=(S.settings.yieldPct||100)/100;
+  const byDate=new Map(A.map(a=>[a.date,a]));
+  const end=[dataRange()[1], addDays(S.today,150)].sort().pop();
+  let cur=A[0].date, val=A[0].qty;
+  map.set(cur,{v:val,anchor:A[0],theo:null,adj:null,est:false});
+  let guard=0;
+  while(cur<end && guard++<4000){
+    cur=addDays(cur,1);
+    const e=eff(cur);
+    const theo = val + e.p*y - e.u - e.s - e.o;   /* 計算上の在庫 */
+    const a=byDate.get(cur);
+    if(a){                                        /* 棚卸＝強制補正 */
+      map.set(cur,{v:a.qty,anchor:a,theo,adj:a.qty-theo,est:false});
+      val=a.qty;
+    }else{
+      map.set(cur,{v:theo,anchor:null,theo,adj:null,est:e.anyEst});
+      val=theo;
+    }
+  }
+  stockCache=map; return map;
+}
+function stockAt(date){const r=stockMap().get(date);return r?r.v:null;}
+function invalidate(){stockCache=null;}
+/* ある日を棚卸した場合の理論在庫（＝強制補正前の計算値）。棚卸未登録の日でも算出できる */
+function theoAt(date){
+  const r=stockMap().get(date);
+  if(!r)return null;
+  return r.theo!==null&&r.theo!==undefined ? r.theo : r.v;
+}
+/* 強制補正の履歴：棚卸により計算値から動かした量 */
+function adjustments(){
+  const sm=stockMap(), out=[];
+  for(const a of anchors()){
+    const r=sm.get(a.date);
+    if(!r||r.adj===null||r.adj===undefined)continue;
+    out.push({...a, theo:r.theo, adj:r.adj, pct:r.theo?(r.adj/r.theo*100):0});
+  }
+  return out;
+}
+function adjInMonth(m){
+  return adjustments().filter(a=>a.date.slice(0,7)===m).reduce((s,a)=>s+a.adj,0);
+}
+
+/* 実効歩留り：棚卸実測どうしの区間から逆算 */
+function yieldSpans(){
+  const A=anchors().filter(a=>a.kind!=="carry"), out=[];
+  for(let i=1;i<A.length;i++){
+    const a=A[i-1], b=A[i]; let P=0,Sp=0, cur=a.date;
+    while(cur<b.date){cur=addDays(cur,1);const r=dayRaw(cur);if(!r)continue;
+      P+=r.p||0; Sp+=(r.u||0)+(r.s||0)+(r.o||0);}
+    if(P>0) out.push({from:a,to:b,prod:P,ship:Sp,pct:(b.qty-a.qty+Sp)/P*100});
+  }
+  return out;
+}
+
+/* ═══ 保存 ═══ */
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),1900);}
+const pending=new Map();                       /* まだ保存が確定していない入力 */
+const pkey=(d,k)=>d+"|"+k;
+/* 同期で届くデータは凍結（読み取り専用）なので、必ず作り直して差し替える */
+function putCell(date,key,val){
+  const m=date.slice(0,7);
+  let local=S.months[m];
+  if(!local||Object.isFrozen(local)) local=S.months[m]={days:(local&&local.days)||{},notes:(local&&local.notes)||{}};
+  local.days=Object.assign({},local.days||{});
+  const cell=Object.assign({},local.days[date]||{});
+  if(val===null)delete cell[key]; else cell[key]=val;
+  local.days[date]=cell;
+  return local;
+}
+function putNote(ws,text){
+  const m=ws.slice(0,7);
+  let local=S.months[m];
+  if(!local||Object.isFrozen(local)) local=S.months[m]={days:(local&&local.days)||{},notes:(local&&local.notes)||{}};
+  local.notes=Object.assign({},local.notes||{});
+  if(text)local.notes[ws]=text; else delete local.notes[ws];
+  return local;
+}
+/* 画面だけ即時に更新（保存はしない） */
+function setLocal(date,key,val){
+  putCell(date,key,val);
+  if(S.db){pending.set(pkey(date,key),val);updatePending();}
+  invalidate();
+}
+/* 同期で上書きされても、保存待ちの入力は残す */
+function applyPending(){
+  for(const [pk,val] of pending){const i=pk.indexOf("|");putCell(pk.slice(0,i),pk.slice(i+1),val);}
+}
+let pendSince=0;
+function updatePending(){
+  const el=document.getElementById("st-pend");
+  if(!el)return;
+  if(!pending.size){ pendSince=0; el.textContent=""; el.classList.remove("stall"); return; }
+  if(!pendSince)pendSince=Date.now();
+  const stalled=Date.now()-pendSince>10000;
+  el.classList.toggle("stall",stalled);
+  el.textContent = stalled? "保存が完了しません（"+pending.size+"件）" : "保存中 "+pending.size+"件";
+}
+setInterval(()=>{if(pending.size)updatePending();},3000);
+/* 保存はバックグラウンドで実行。画面更新をブロックしない */
+function persist(date,key,val){
+  if(!S.db)return;
+  const m=date.slice(0,7), pk=pkey(date,key);
+  pending.set(pk,val); updatePending();
+  const done=()=>{pending.delete(pk);updatePending();};
+  Promise.resolve()
+    .then(()=>S.db.doc("months/"+m).update({days:{[date]:{[key]:val}}}))
+    .then(done)
+    .catch(()=>{
+      const local=S.months[m]||{days:{},notes:{}};
+      return S.db.doc("months/"+m).set({days:local.days||{},notes:local.notes||{}}).then(done);
+    })
+    .catch(e=>{ updatePending(); toast("保存できませんでした（"+((e&&e.code)||"error")+"）"); });
+}
+/* ローカル反映＋保存。await しないこと */
+function writeDay(date,key,val){ setLocal(date,key,val); persist(date,key,val); }
+function writeNote(ws,text){
+  const local=putNote(ws,text);
+  if(!S.db)return;
+  const m=ws.slice(0,7);
+  Promise.resolve()
+    .then(()=>S.db.doc("months/"+m).update({notes:{[ws]:text||null}}))
+    .catch(()=>S.db.doc("months/"+m).set({days:local.days||{},notes:local.notes||{}}))
+    .catch(()=>toast("メモを保存できませんでした"));
+}
+async function saveSettings(){
+  invalidate();
+  if(!S.db)return;
+  try{ await S.db.doc("config/settings").set({...S.settings,updatedAt:S.today}); }
+  catch(e){ toast("設定を保存できませんでした"); }
+}
+async function saveStocktakes(){
+  invalidate();
+  if(!S.db)return;
+  try{ await S.db.doc("config/stocktakes").set({list:S.stocktakes}); }
+  catch(e){ toast("棚卸を保存できませんでした"); }
+}
+
+/* ═══ 描画：コンソール ═══ */
+function renderConsole(){
+  const base = latestFixedDate();
+  const v = base?stockAt(base):null;
+  const need = needTotal();
+  document.getElementById("k-stock").innerHTML = fmt(v)+'<u id="k-stock-u">'+U()+'</u>';
+  document.getElementById("k-stock-note").innerHTML = base
+    ? fmtMD(base)+" 時点"+(base===S.today?"":"（最新の確定日）")+
+      (v!==null&&reserve()?'　<span style="color:var(--faint)">余剰・パーツ品 '+fmt(reserve())+U()+' を除く有効在庫 '+fmt(v-reserve())+U()+'</span>':'')
+    : "棚卸の登録がありません";
+  const days = daysOf(v);
+  document.getElementById("k-days").innerHTML = days===null?"—":days.toFixed(2)+'<u style="font-size:13px;font-weight:600;color:var(--muted)"> 日</u>';
+  document.getElementById("k-need").textContent = fmt(need)+U()+"・控除 "+fmt(reserve())+U();
+  const bEl=document.getElementById("k-band");
+  if(days===null){bEl.innerHTML="";}
+  else{const b=bandOf(days);bEl.innerHTML='<span class="pill p'+b+'"><b></b>'+BANDS[b].k+'</span>';}
+
+  const r=firstRisk();
+  document.getElementById("k-risk").textContent = r? fmtDate(r.date)+"（"+WD[dow(r.date)]+"）" : "なし";
+  document.getElementById("k-risk-note").textContent = r? "在庫日数 "+r.days.toFixed(2)+"日・"+diffDays(S.today,r.date)+"日後" : "表示範囲内に下限割れはありません";
+
+  const adj=adjustments(), la=adj[adj.length-1];
+  const kv=document.getElementById("k-yield"), kn=document.getElementById("k-yield-note");
+  if(la){
+    const sign=la.adj>=0?"+":"−";
+    kv.innerHTML='<span style="color:var(--'+(la.adj<0?"b1":"b3")+')">'+sign+fmt(Math.abs(la.adj))+'</span>'+
+                 '<u style="font-size:13px;font-weight:600;color:var(--muted)"> '+U()+'</u>';
+    kn.textContent=fmtDate(la.date)+" の棚卸で強制補正（計算値比 "+sign+Math.abs(la.pct).toFixed(1)+"%）";
+  }else{
+    const ys=yieldSpans(), last=ys[ys.length-1];
+    kv.textContent = last? last.pct.toFixed(1)+"%" : "—";
+    kn.textContent = last? "実効歩留り "+fmtDate(last.from.date)+"→"+fmtDate(last.to.date) : "棚卸を登録すると表示されます";
+  }
+}
+function latestFixedDate(){
+  /* 生産が実入力されている最後の日（今日以前） */
+  let best=null;
+  for(const m of Object.keys(S.months).sort()){
+    const d=monthDoc(m).days||{};
+    for(const k of Object.keys(d)){
+      if(k<=S.today && d[k] && d[k].p!==null && d[k].p!==undefined && (!best||k>best)) best=k;
+    }
+  }
+  return best|| (anchors().length? anchors()[anchors().length-1].date : null);
+}
+function firstRisk(){
+  const lim=S.settings.bands[1], need=needTotal();
+  if(!need)return null;
+  let cur=S.today;
+  for(let i=0;i<200;i++){
+    const v=stockAt(cur);
+    if(v!==null){const d=daysOf(v); if(d<lim) return {date:cur,v,days:d};}
+    cur=addDays(cur,1);
+  }
+  return null;
+}
+function renderLegend(id){
+  const el=document.getElementById(id); if(!el)return;
+  const b=S.settings.bands;
+  el.innerHTML = BANDS.map((x,i)=>{
+    const fromD = i===0?0:b[i-1], toD = i===4?null:b[i];
+    const rng = toD===null? fromD+"日以上" : fromD+"–"+toD+"日";
+    const fromKg = i===0?0:stockForDays(fromD);
+    return '<div style="border-left-color:var(--'+x.c+');background:var(--'+x.c+'-w)">'+
+      '<b style="color:var(--'+x.c+')">'+x.k+'</b>'+
+      '<s>'+rng+'　'+fmt(fromKg,1)+U()+(toD===null?"+":"–"+fmt(stockForDays(toD),1)+U())+'</s></div>';
+  }).join("");
+}
+
+/* ═══ 描画：週ボード ═══ */
+function weekDates(){const ws=S.week||weekStart(S.today);return [...Array(7)].map((_,i)=>addDays(ws,i));}
+
+/* 在庫行（派生表示）。入力欄を作り直さずに差し替えられるよう独立させる */
+function stockRowHtml(dates){
+  const sm=stockMap();
+  let h='<th class="rowhead">在庫<u>CLOSING STOCK</u></th>';
+  for(const d of dates){
+    const rec=sm.get(d);
+    if(!rec){h+='<td class="locked">—</td>';continue;}
+    const dd=daysOf(rec.v)??0, b=bandOf(dd);
+    const forced = rec.anchor && rec.adj!==null && rec.adj!==undefined;
+    h+='<td><div class="stk s'+b+(rec.est?" est":"")+(forced?" forced":"")+'">'+
+       '<span class="v">'+fmt(rec.v)+'</span>'+
+       '<span class="d">'+dd.toFixed(2)+'日</span>'+
+       (forced?'<span class="adj">計算値 '+fmt(rec.theo)+' → '+(rec.adj>=0?"+":"−")+fmt(Math.abs(rec.adj))+'</span>':'')+
+       '</div></td>';
+  }
+  const lastRec=sm.get(dates[6]);
+  return h+'<td class="tot">'+(lastRec?fmt(lastRec.v):"—")+'</td>';
+}
+
+/* 状態タグ行（派生表示） */
+function tagRowHtml(dates){
+  const sm=stockMap();
+  let h='<th class="rowhead" style="border-bottom:0"></th>';
+  for(const d of dates){
+    const raw=dayRaw(d)||{}, rec=sm.get(d);
+    const tags=[];
+    if(rec&&rec.anchor){
+      const forced = rec.adj!==null && rec.adj!==undefined && Math.abs(rec.adj)>=1;
+      tags.push('<span class="tag cnt">'+(rec.anchor.kind==="carry"?"引継":forced?"棚卸・強制補正":"棚卸")+'</span>');
+    }
+    if(d<=S.today){ if(raw.p!==undefined&&raw.p!==null) tags.push('<span class="tag act">実績</span>'); }
+    else if(raw.u!==undefined&&raw.u!==null) tags.push('<span class="tag fix">確定</span>');
+    else if(dow(d)>=1&&dow(d)<=5) tags.push('<span class="tag plan">予定</span>');
+    h+='<td style="border-bottom:0"><div class="tagrow">'+tags.join("")+'</div></td>';
+  }
+  return h+'<td class="tot" style="border-bottom:0"></td>';
+}
+
+/* 入力後の再計算：入力欄には触らず、合計・在庫・タグだけ差し替える（フォーカスを失わない） */
+function refreshDerived(dates){
+  for(const r of ROWS){
+    let tot=0; for(const d of dates) tot+=eff(d)[r.k];
+    const c=document.querySelector('[data-tot="'+r.k+'"]');
+    if(c)c.textContent=fmt(tot);
+  }
+  const sr=document.getElementById("row-stock"); if(sr)sr.innerHTML=stockRowHtml(dates);
+  const tg=document.getElementById("row-tags");  if(tg)tg.innerHTML=tagRowHtml(dates);
+}
+
+function renderWeek(){
+  const focus=(()=>{const a=document.activeElement;
+    return a&&a.classList&&a.classList.contains("c")?{d:a.dataset.d,k:a.dataset.k}:null;})();
+  const ws=S.week||weekStart(S.today);
+  const dates=weekDates();
+  const off=diffDays(weekStart(S.today),ws)/7;
+  document.getElementById("w-title").innerHTML =
+    fmtMD(ws)+" – "+fmtMD(dates[6]).replace(/^\d+年/,"")+
+    '<span>'+(off===0?"今週":off>0?"+"+off+"週":off+"週")+'</span>';
+
+  let h='<table class="grid"><thead><tr><th class="rowhead">日付</th>';
+  for(const d of dates){
+    const w=dow(d), cls=(w===6?"sat":w===0?"sun":"")+(d===S.today?" today":"");
+    h+='<th class="'+cls+'">'+WD[w]+'<em>'+fmtDate(d)+'</em></th>';
+  }
+  h+='<th class="tot">週合計</th></tr></thead><tbody>';
+
+  for(const r of ROWS){
+    h+='<tr class="r-'+r.k+'"><th class="rowhead">'+r.ja+'<u>'+r.en+'</u></th>';
+    let tot=0;
+    for(const d of dates){
+      const e=eff(d), raw=dayRaw(d)||{}, stored=raw[r.k];
+      const isStored = stored!==undefined && stored!==null;
+      tot+=e[r.k];
+      const shown = isStored ? stored : (e.est[r.k] ? e[r.k] : null);
+      const cls=(e.est[r.k]?"est ":"")+(isStored&&stored===0?"zero ":"");
+      h+='<td class="inp"><input class="c '+cls+'" type="text" inputmode="decimal" autocomplete="off" '+
+         'data-d="'+d+'" data-k="'+r.k+'" value="'+esc(toInput(shown))+'" '+
+         'aria-label="'+r.ja+" "+fmtDate(d)+'"></td>';
+    }
+    h+='<td class="tot" data-tot="'+r.k+'">'+fmt(tot)+'</td></tr>';
+  }
+  h+='<tr class="r-stock" id="row-stock">'+stockRowHtml(dates)+'</tr>';
+  h+='<tr id="row-tags">'+tagRowHtml(dates)+'</tr></tbody></table>';
+  h+='<div class="wknote"><span class="lbl" style="flex:none">週メモ</span>'+
+     '<input id="wknote" value="'+esc(weekNote(ws))+'" placeholder="例：太田様 1,850kg/日予定、断水9〜15"></div>';
+
+  document.getElementById("board").innerHTML=h;
+  wireBoard(dates);
+  renderLegend("legend");
+  if(focus){
+    const back=document.querySelector('input.c[data-d="'+focus.d+'"][data-k="'+focus.k+'"]');
+    if(back)back.focus();
+  }
+}
+
+function wireBoard(dates){
+  const inputs=[...document.querySelectorAll("input.c")];
+  const cellAt=(r,c)=>(r<0||r>=ROWS.length||c<0||c>6)?null:
+    document.querySelector('input.c[data-d="'+dates[c]+'"][data-k="'+ROWS[r].k+'"]');
+  const posOf=el=>({r:ROWS.findIndex(x=>x.k===el.dataset.k), c:dates.indexOf(el.dataset.d)});
+
+  const apply=(el,normalize)=>{ try{ return apply0(el,normalize); }
+    catch(err){ status("off","入力の反映に失敗しました："+(err&&err.message||err)); throw err; } };
+  const apply0=(el,normalize)=>{
+    const v = el.value.trim()===""?null:toStore(el.value);
+    const cur=dayRaw(el.dataset.d)||{};
+    const same = (cur[el.dataset.k]??null)===v;
+    if(normalize)el.value=toInput(v);
+    el.classList.remove("est","zero");
+    if(v===0)el.classList.add("zero");
+    if(same)return v;
+    setLocal(el.dataset.d, el.dataset.k, v);
+    refreshDerived(dates); renderConsole();    /* 画面は即時に更新する */
+    return v;
+  };
+  const commit=(el)=>{
+    const v=apply(el,true);
+    persist(el.dataset.d, el.dataset.k, v);    /* 保存は待たない */
+    el.classList.remove("saved"); void el.offsetWidth; el.classList.add("saved");
+  };
+  let deb=null;
+  const live=(el)=>{                           /* 打っている最中に在庫を計算し直す */
+    clearTimeout(deb);
+    deb=setTimeout(()=>apply(el,false),300);
+  };
+
+  for(const el of inputs){
+    el.addEventListener("focus",()=>el.select());
+    el.addEventListener("input",()=>live(el));
+    el.addEventListener("change",()=>commit(el));
+    el.addEventListener("blur",()=>commit(el));
+    el.addEventListener("keydown",(ev)=>{
+      const {r,c}=posOf(el);
+      let t=null;
+      if(ev.key==="Enter"||ev.key==="ArrowDown") t=cellAt(r+1,c)||cellAt(0,c+1);
+      else if(ev.key==="ArrowUp") t=cellAt(r-1,c);
+      else if(ev.key==="ArrowLeft"&&el.selectionStart===0&&el.selectionEnd===0) t=cellAt(r,c-1);
+      else if(ev.key==="ArrowRight"&&el.selectionStart===el.value.length) t=cellAt(r,c+1);
+      else return;
+      ev.preventDefault();
+      if(t)t.focus();
+    });
+    el.addEventListener("paste",async(ev)=>{
+      const txt=((ev.clipboardData||window.clipboardData)||{getData:()=>""}).getData("text")||"";
+      const parts=txt.split(/[\t\r\n]+/).map(x=>x.trim()).filter(x=>x!=="");
+      if(parts.length<2)return;                /* 単一値は通常のペーストに任せる */
+      ev.preventDefault();
+      const {r,c}=posOf(el);
+      let n=0;
+      for(let i=0;i<parts.length && c+i<7;i++){
+        writeDay(dates[c+i], ROWS[r].k, toStore(parts[i]));
+        n++;
+      }
+      renderWeek(); renderConsole(); toast(n+"日分を入力しました");
+    });
+  }
+  const wn=document.getElementById("wknote");
+  wn.addEventListener("change",()=>writeNote(S.week||weekStart(S.today),wn.value.trim()));
+
+  /* 見張り：表示値と保持値がずれたら必ず取り込む（イベントが発火しない環境の保険） */
+  clearInterval(wireBoard._w);
+  wireBoard._w=setInterval(()=>{
+    if(S.tab!=="entry")return;
+    let changed=false;
+    for(const el of document.querySelectorAll("input.c")){
+      if(el.classList.contains("est"))continue;
+      const cur=(dayRaw(el.dataset.d)||{})[el.dataset.k]??null;
+      if(el.value.trim()===toInput(cur))continue;           /* 表示どおり＝取り込み済み */
+      const v = el.value.trim()===""?null:toStore(el.value);
+      setLocal(el.dataset.d, el.dataset.k, v); persist(el.dataset.d, el.dataset.k, v); changed=true;
+    }
+    if(changed){ refreshDerived(weekDates()); renderConsole(); }
+  },900);
+}
+
+/* ═══ 描画：推移グラフ ═══ */
+function renderChart(){
+  const el=document.getElementById("chart");
+  const sm=stockMap(), need=needTotal();
+  if(!sm.size||!need){el.innerHTML='<div class="empty"><b>在庫を算出できません</b>棚卸の実測値を1件以上登録してください。</div>';return;}
+  const [back,fwd]=S.range;
+  const dr=dataRange();
+  let from = back>=9999? dr[0] : addDays(S.today,-back);
+  let to   = fwd>=9999?  dr[1] : addDays(S.today, fwd);
+  const keys=[...sm.keys()].filter(k=>k>=from&&k<=to).sort();
+  if(keys.length<2){el.innerHTML='<div class="empty"><b>表示範囲にデータがありません</b>範囲を広げてください。</div>';return;}
+
+  const W=1040,H=340, mL=64,mR=54,mT=16,mB=34;
+  const iw=W-mL-mR, ih=H-mT-mB;
+  const vals=keys.map(k=>sm.get(k).v);
+  const b=S.settings.bands;
+  let vmax=Math.max(...vals, stockForDays(b[3])*1.06), vmin=Math.min(0,...vals);
+  const x=i=>mL+iw*(i/(keys.length-1));
+  const y=v=>mT+ih*(1-(v-vmin)/(vmax-vmin||1));
+
+  let g='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="在庫推移と判定帯">';
+  /* 判定帯 */
+  const edges=[vmin,stockForDays(b[0]),stockForDays(b[1]),stockForDays(b[2]),stockForDays(b[3]),vmax];
+  for(let i=0;i<5;i++){
+    const y0=y(Math.min(edges[i+1],vmax)), y1=y(Math.max(edges[i],vmin));
+    if(y1-y0<=0)continue;
+    g+='<rect class="bg-'+BANDS[i].c+'" x="'+mL+'" y="'+y0.toFixed(1)+'" width="'+iw+'" height="'+(y1-y0).toFixed(1)+'"/>';
+  }
+  /* しきい値線＋右ラベル */
+  for(let i=0;i<4;i++){
+    const yy=y(stockForDays(b[i]));
+    if(yy<mT||yy>mT+ih)continue;
+    g+='<line class="st-'+BANDS[i].c+'" x1="'+mL+'" x2="'+(mL+iw)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+
+       '" stroke-width="1" stroke-dasharray="2 3" opacity=".85"/>'+
+       '<text class="fl-'+BANDS[i].c+'" x="'+(mL+iw+6)+'" y="'+(yy+3.5).toFixed(1)+'" font-size="10.5" font-weight="600">'+b[i]+'日</text>';
+  }
+  /* 余剰・パーツ品在庫の水準（この線より下は判定上ゼロ日分） */
+  if(reserve()>0){
+    const yr=y(reserve());
+    if(yr>=mT&&yr<=mT+ih){
+      g+='<line class="m-reserve" x1="'+mL+'" x2="'+(mL+iw)+'" y1="'+yr.toFixed(1)+'" y2="'+yr.toFixed(1)+'" stroke-width="1.2"/>'+
+         '<text class="t-faint" x="'+(mL+iw+6)+'" y="'+(yr+3.5).toFixed(1)+'" font-size="9.5" font-weight="600">控除</text>';
+    }
+  }
+  /* Y軸 */
+  for(let i=0;i<=4;i++){
+    const v=vmin+(vmax-vmin)*i/4, yy=y(v);
+    g+='<text class="t-faint" x="'+(mL-8)+'" y="'+(yy+3.5).toFixed(1)+'" text-anchor="end" font-size="10.5">'+fmt(v,0)+'</text>';
+  }
+  g+='<text class="t-faint" x="'+(mL-8)+'" y="'+(mT-4)+'" text-anchor="end" font-size="9.5" letter-spacing="1">'+U().toUpperCase()+'</text>';
+  /* X軸：月の区切り */
+  let lastM="";
+  keys.forEach((k,i)=>{
+    const m=k.slice(0,7);
+    if(m===lastM)return;
+    lastM=m;
+    const xx=x(i);
+    g+='<line class="g-line" x1="'+xx.toFixed(1)+'" x2="'+xx.toFixed(1)+'" y1="'+mT+'" y2="'+(mT+ih)+'" stroke-width="1"/>'+
+       '<text class="t-muted" x="'+(xx+4).toFixed(1)+'" y="'+(H-12)+'" font-size="10.5">'+(+m.slice(5,7))+'月</text>';
+  });
+  g+='<line class="g-axis" x1="'+mL+'" x2="'+(mL+iw)+'" y1="'+(mT+ih)+'" y2="'+(mT+ih)+'" stroke-width="1"/>';
+  /* 在庫ライン：実績・確定は実線、計画補完は破線 */
+  const segs=[]; let prevPt=null, prevEst=null;
+  keys.forEach((k,i)=>{
+    const rec=sm.get(k), e=!!rec.est, pt=x(i).toFixed(1)+","+y(rec.v).toFixed(1);
+    if(prevPt===null) segs.push({est:e,pts:[pt]});
+    else if(e===prevEst) segs[segs.length-1].pts.push(pt);
+    else segs.push({est:e,pts:[prevPt,pt]});
+    prevPt=pt; prevEst=e;
+  });
+  for(const s of segs){
+    if(s.pts.length<2)continue;
+    g+='<polyline class="l-stock'+(s.est?" plan":"")+'" points="'+s.pts.join(" ")+'"/>';
+  }
+  /* 本日 */
+  const ti=keys.indexOf(S.today);
+  if(ti>=0){
+    const xx=x(ti);
+    g+='<line class="g-now" x1="'+xx.toFixed(1)+'" x2="'+xx.toFixed(1)+'" y1="'+mT+'" y2="'+(mT+ih)+'" stroke-width="1.5"/>'+
+       '<text class="t-ink" x="'+(xx+5).toFixed(1)+'" y="'+(mT+11)+'" font-size="10.5" font-weight="700">本日</text>';
+  }
+  /* 棚卸マーカーと強制補正の段差（計算値→実測値） */
+  keys.forEach((k,i)=>{
+    const rec=sm.get(k);
+    if(!rec.anchor)return;
+    const xx=x(i), yy=y(rec.v);
+    if(rec.theo!==null&&rec.theo!==undefined&&Math.abs(rec.adj)>need*0.05){
+      const yt=y(rec.theo);
+      g+='<line class="m-jump" x1="'+xx.toFixed(1)+'" x2="'+xx.toFixed(1)+'" y1="'+yt.toFixed(1)+'" y2="'+yy.toFixed(1)+'" stroke-width="1.6" stroke-dasharray="3 2"/>'+
+         '<circle class="m-theo" cx="'+xx.toFixed(1)+'" cy="'+yt.toFixed(1)+'" r="2.8" stroke-width="1.4"/>';
+    }
+    g+='<path class="m-anchor" d="M'+xx.toFixed(1)+' '+(yy-5.5).toFixed(1)+'l5.5 5.5-5.5 5.5-5.5-5.5z" stroke-width="1.8"/>';
+  });
+  /* 最終点 */
+  const li=keys.length-1;
+  g+='<circle class="m-dot" cx="'+x(li).toFixed(1)+'" cy="'+y(vals[li]).toFixed(1)+'" r="3.5" stroke-width="1.5"/>';
+  g+='</svg>';
+  el.innerHTML=g;
+  renderLegend("legend2");
+}
+
+/* ═══ 描画：リスク ═══ */
+function renderRisk(){
+  const need=needTotal(), b=S.settings.bands, sm=stockMap();
+  const body=document.getElementById("risk-body"), side=document.getElementById("risk-side");
+  if(!need||!sm.size){body.innerHTML='<div class="empty"><b>算出できません</b>棚卸の実測値を登録してください。</div>';side.innerHTML="";return;}
+  const rows=[]; let cur=S.today;
+  for(let i=0;i<190;i++){
+    const rec=sm.get(cur);
+    if(rec){const d=daysOf(rec.v); if(d<b[1]) rows.push({date:cur,v:rec.v,days:d,est:rec.est});}
+    cur=addDays(cur,1);
+  }
+  document.getElementById("risk-count").textContent = rows.length? rows.length+"日":"";
+  if(!rows.length){
+    body.innerHTML='<div class="empty"><b>下限割れの予測はありません</b>今後190日、在庫日数は「問題無し」以上を維持します。</div>';
+    side.innerHTML='<p class="hint" style="margin:0">現行計画のままで納期に問題は出ません。設備停止を組む余裕は「在庫推移」で確認してください。</p>';
+    return;
+  }
+  const target=stockForDays(b[1]);
+  body.innerHTML='<div class="scroll"><table class="data"><thead><tr>'+
+    '<th class="l">日付</th><th>在庫</th><th>在庫日数</th><th class="l">判定</th><th>不足量</th><th>必要追加生産</th></tr></thead><tbody>'+
+    rows.map(r=>{
+      const bi=bandOf(r.days), sh=Math.max(0,target-r.v), addp=sh/((S.settings.yieldPct||100)/100);
+      return '<tr'+(r.date===S.today?' class="now"':'')+'>'+
+        '<td class="l n">'+fmtDate(r.date)+'（'+WD[dow(r.date)]+'）'+(r.est?' <span class="chip" style="color:var(--est);border-color:var(--line-strong)">計画</span>':'')+'</td>'+
+        '<td class="n">'+fmt(r.v)+'</td><td class="n">'+r.days.toFixed(2)+'</td>'+
+        '<td class="l"><span class="chip" style="color:var(--'+BANDS[bi].c+');border-color:var(--'+BANDS[bi].c+');background:var(--'+BANDS[bi].c+'-w)">'+BANDS[bi].k+'</span></td>'+
+        '<td class="n" style="color:var(--b0);font-weight:600">'+fmt(sh)+'</td><td class="n">'+fmt(addp)+'</td></tr>';
+    }).join("")+'</tbody></table></div>';
+
+  const worst=rows.reduce((a,c)=>c.days<a.days?c:a,rows[0]);
+  const firstD=rows[0], lead=diffDays(S.today,firstD.date);
+  const shortfall=Math.max(0,target-worst.v);
+  const addPerDay = lead>0? shortfall/((S.settings.yieldPct||100)/100)/lead : shortfall;
+  side.innerHTML=
+    '<div class="callout"><b>最も薄くなる日</b>：'+fmtMD(worst.date)+'（在庫日数 '+worst.days.toFixed(2)+'日）</div>'+
+    '<div class="fields" style="margin-top:14px">'+
+    '<div><span class="lbl">下限（'+b[1]+'日分）まで</span><div class="mid" style="color:var(--b0)">'+fmt(shortfall)+U()+'</div></div>'+
+    '<div><span class="lbl">'+fmtDate(firstD.date)+'までの日数</span><div class="mid">'+lead+' 日</div></div>'+
+    '</div>'+
+    '<p class="hint">この日までに<b> 1日あたり '+fmt(addPerDay)+U()+' </b>を上積みすれば下限を割りません（歩留り '+S.settings.yieldPct+'% 換算）。'+
+    '内堀の納品が2週間前に確定した時点で数字が動くため、確定分を入力し直すと再判定されます。</p>';
+}
+
+/* ═══ 描画：月次集計 ═══ */
+function renderSum(){
+  const need=needTotal(), sm=stockMap();
+  const ms=Object.keys(S.months).sort().reverse();
+  const el=document.getElementById("sum-body");
+  if(!ms.length){el.innerHTML='<div class="empty"><b>データがありません</b></div>';}
+  else{
+    el.innerHTML='<table class="data"><thead><tr><th class="l">月</th><th>生産</th><th>内堀</th><th>社内</th><th>その他</th><th>棚卸差異</th><th>月末在庫</th><th>最低在庫日数</th></tr></thead><tbody>'+
+      ms.map(m=>{
+        const days=Object.keys(monthDoc(m).days||{}).sort();
+        let P=0,Uu=0,Ss=0,Oo=0, minD=Infinity, last=null;
+        const dim=new Date(+m.slice(0,4), +m.slice(5,7), 0).getDate();
+        for(let i=1;i<=dim;i++){
+          const d=m+"-"+String(i).padStart(2,"0"), raw=dayRaw(d);
+          if(raw){P+=raw.p||0;Uu+=raw.u||0;Ss+=raw.s||0;Oo+=raw.o||0;}
+          const rec=sm.get(d);
+          if(rec&&need){minD=Math.min(minD,daysOf(rec.v)); last=rec.v;}
+        }
+        const bi=isFinite(minD)?bandOf(minD):null;
+        const ad=adjInMonth(m);
+        return '<tr'+(m===S.today.slice(0,7)?' class="now"':'')+'><td class="l n">'+m.replace("-","/")+'</td>'+
+          '<td class="n">'+fmt(P)+'</td><td class="n">'+fmt(Uu)+'</td><td class="n">'+fmt(Ss)+'</td><td class="n">'+fmt(Oo)+'</td>'+
+          '<td class="n">'+(ad?'<span style="font-weight:700;color:var(--'+(ad<0?"b1":"b3")+')">'+(ad>=0?"+":"−")+fmt(Math.abs(ad))+'</span>':'—')+'</td>'+
+          '<td class="n">'+(last!==null?fmt(last):"—")+'</td>'+
+          '<td class="n">'+(bi===null?"—":'<span style="color:var(--'+BANDS[bi].c+');font-weight:600">'+minD.toFixed(2)+'</span>')+'</td></tr>';
+      }).join("")+'</tbody></table>';
+  }
+  const ys=yieldSpans(), ye=document.getElementById("yield-body");
+  if(!ys.length){ye.innerHTML='<div class="empty"><b>棚卸が1件です</b>2件以上登録すると、区間ごとの実効歩留りを逆算します。</div>';}
+  else{
+    ye.innerHTML='<table class="data"><thead><tr><th class="l">区間</th><th>生産</th><th>出荷</th><th>実効歩留り</th></tr></thead><tbody>'+
+      ys.map(s=>'<tr><td class="l n">'+fmtDate(s.from.date)+" → "+fmtDate(s.to.date)+'</td>'+
+        '<td class="n">'+fmt(s.prod)+'</td><td class="n">'+fmt(s.ship)+'</td>'+
+        '<td class="n" style="font-weight:700;color:var(--'+(s.pct<S.settings.yieldPct-1?"b1":"b2")+')">'+s.pct.toFixed(1)+'%</td></tr>').join("")+
+      '</tbody></table>'+
+      '<div style="padding:14px 18px"><div class="callout">棚卸実測から逆算した歩留りが設定値（'+S.settings.yieldPct+'%）より低い場合、在庫は計算値より少なく出ます。'+
+      '<button class="btn" id="apply-yield" style="margin-top:9px">実効歩留り '+ys[ys.length-1].pct.toFixed(1)+'% を設定に反映</button></div></div>';
+    const btn=document.getElementById("apply-yield");
+    if(btn)btn.onclick=async()=>{S.settings.yieldPct=+ys[ys.length-1].pct.toFixed(1);await saveSettings();syncCfg();renderAll();renderConsole();toast("歩留りを更新しました");};
+  }
+}
+
+/* ═══ 設定 ═══ */
+function syncCfg(){
+  const st=S.settings;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v;};
+  set("c-yield",st.yieldPct); set("c-planprod",st.planProd); set("c-reserve",st.reserve);
+  set("c-need-u",st.need.u); set("c-need-s",st.need.s); set("c-need-o",st.need.o);
+  set("c-b0",st.bands[0]); set("c-b1",st.bands[1]); set("c-b2",st.bands[2]); set("c-b3",st.bands[3]);
+  document.getElementById("c-autofill").checked=!!st.autoFill;
+  document.getElementById("c-thu").checked=!!st.thuBoost;
+  document.getElementById("c-need-sum").innerHTML=
+    needTotal().toLocaleString("ja-JP")+"kg（"+(needTotal()/1000).toFixed(1)+"t）／稼働日。余剰・パーツ品在庫 <b>"+
+    reserve().toLocaleString("ja-JP")+"kg</b> を差し引いた分をこの値で割って在庫日数を出します。";
+  for(let i=0;i<4;i++){
+    const e=document.getElementById("e-b"+i); if(!e)continue;
+    e.textContent="≒ "+fmt(stockForDays(st.bands[i]),1)+U()+" 以下";
+  }
+}
+function renderStock(){
+  const el=document.getElementById("st-body"), sm=stockMap();
+  const A=anchors().slice().reverse();
+  if(!A.length){el.innerHTML='<div class="empty"><b>棚卸が未登録です</b>実測在庫を1件登録すると在庫計算が始まります。</div>';return;}
+  el.innerHTML='<table class="data"><thead><tr><th class="l">棚卸日</th><th>計算値</th><th>実測（採用値）</th><th>棚卸差異</th><th class="l">区分・メモ</th><th></th></tr></thead><tbody>'+
+    A.map(a=>{
+      const r=sm.get(a.date)||{}, has=r.adj!==null&&r.adj!==undefined;
+      const sign=has?(r.adj>=0?"+":"−"):"";
+      return '<tr><td class="l n">'+a.date+'</td>'+
+      '<td class="n" style="color:var(--muted)">'+(has?fmt(r.theo):"—")+'</td>'+
+      '<td class="n" style="font-weight:600">'+fmt(a.qty)+'</td>'+
+      '<td class="n" style="font-weight:700;color:var(--'+(has?(r.adj<0?"b1":"b3"):"faint")+')">'+(has?sign+fmt(Math.abs(r.adj)):"起点")+'</td>'+
+      '<td class="l" style="white-space:normal"><span class="chip" style="color:var(--'+(a.kind==="carry"?"est":"b4")+');border-color:var(--line-strong)">'+(a.kind==="carry"?"引継":"棚卸")+'</span> <span style="color:var(--muted)">'+esc(a.memo||"")+'</span></td>'+
+      '<td><button class="del" data-del="'+a.date+'" title="削除" aria-label="'+a.date+' の棚卸を削除">×</button></td></tr>';
+    }).join("")+
+    '</tbody></table>';
+  el.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+    S.stocktakes=S.stocktakes.filter(x=>x.date!==b.dataset.del);
+    await saveStocktakes(); renderConsole(); renderAll();
+  });
+  previewStocktake();
+}
+/* 棚卸入力中：計算値と差異をその場で見せる */
+function previewStocktake(){
+  const el=document.getElementById("s-preview"); if(!el)return;
+  const dEl=document.getElementById("s-date"), qEl=document.getElementById("s-qty");
+  const d=dEl.value;
+  if(!d){el.innerHTML="棚卸日を選ぶと、その日の計算在庫を表示します。";return;}
+  const others=S.stocktakes.filter(x=>x.date!==d);
+  const saved=S.stocktakes;
+  S.stocktakes=others; invalidate();
+  const theo=theoAt(d);
+  S.stocktakes=saved; invalidate();
+  if(theo===null){el.innerHTML=fmtMD(d)+" は在庫計算の範囲外です（最初の棚卸より前の日付）。";return;}
+  const dv=daysOf(theo);
+  let h=fmtMD(d)+" の計算在庫 <b>"+fmt(theo)+U()+"</b>（"+(dv===null?"—":dv.toFixed(2))+"日分）";
+  if(qEl.value!==""){
+    const q=toStore(qEl.value), adj=q-theo;
+    const cls=adj>=0?"up":"dn", sign=adj>=0?"+":"−";
+    h+=' → 実測 <b>'+fmt(q)+U()+'</b>　差異 <b class="'+cls+'">'+sign+fmt(Math.abs(adj))+U()+
+       '（'+(theo?sign+Math.abs(adj/theo*100).toFixed(1):"—")+'%）</b>';
+  }else{
+    h+="　実測在庫を入力すると差異を表示します。";
+  }
+  el.innerHTML=h;
+}
+
+/* ═══ CSV ═══ */
+async function exportCsv(){
+  const sm=stockMap(), need=needTotal();
+  const keys=[...sm.keys()].sort();
+  const head=["日付","曜日","生産kg","内堀kg","社内kg","その他kg","計算在庫kg","棚卸差異kg","在庫kg","有効在庫kg","在庫日数","判定","区分"];
+  const lines=[head.join(",")];
+  for(const k of keys){
+    const raw=dayRaw(k)||{}, rec=sm.get(k), d=daysOf(rec.v)??0;
+    const hasAdj=rec.adj!==null&&rec.adj!==undefined;
+    lines.push([k,WD[dow(k)],raw.p??"",raw.u??"",raw.s??"",raw.o??"",
+      rec.theo!==null&&rec.theo!==undefined?Math.round(rec.theo):"",
+      hasAdj?Math.round(rec.adj):"",
+      Math.round(rec.v),Math.round(rec.v-reserve()),d.toFixed(2),BANDS[bandOf(d)].k,
+      rec.anchor?(rec.anchor.kind==="carry"?"引継":hasAdj&&Math.abs(rec.adj)>=1?"棚卸(強制補正)":"棚卸"):(rec.est?"計画":k<=S.today?"実績":"確定")].join(","));
+  }
+  const data="﻿"+lines.join("\r\n");
+  const dl=await claude.use("downloads");
+  if(!dl){toast("この画面では書き出しを利用できません");return;}
+  try{ await dl.save({filename:"鋳造在庫_"+S.today+".csv", data}); }
+  catch(e){ if(e&&e.code!=="cancelled") toast("書き出しできませんでした"); }
+}
+
+/* ═══ 全体再描画 ═══ */
+function editing(){
+  const a=document.activeElement;
+  return !!(a&&a.classList&&a.classList.contains("c"));
+}
+function renderAll(){
+  if(S.tab==="entry"){ if(editing())refreshDerived(weekDates()); else renderWeek(); }
+  if(S.tab==="trend")renderChart();
+  if(S.tab==="risk")renderRisk();
+  if(S.tab==="sum")renderSum();
+  if(S.tab==="cfg"){syncCfg();renderStock();}
+  document.getElementById("k-stock-u").textContent=U();
+}
+
+/* ═══ 配線 ═══ */
+function wire(){
+  document.querySelectorAll('nav [role="tab"]').forEach(btn=>btn.onclick=()=>{
+    S.tab=btn.dataset.tab;
+    document.querySelectorAll('nav [role="tab"]').forEach(b=>b.setAttribute("aria-selected",String(b===btn)));
+    ["entry","trend","risk","sum","cfg"].forEach(t=>document.getElementById("tab-"+t).hidden=(t!==S.tab));
+    renderAll();
+  });
+  const setUnit=u=>{S.unit=u;
+    document.getElementById("u-kg").setAttribute("aria-pressed",String(u==="kg"));
+    document.getElementById("u-t").setAttribute("aria-pressed",String(u==="t"));
+    try{localStorage.setItem("stk-unit",u);}catch(e){}
+    renderConsole();renderAll();};
+  document.getElementById("u-kg").onclick=()=>setUnit("kg");
+  document.getElementById("u-t").onclick=()=>setUnit("t");
+  try{const u=localStorage.getItem("stk-unit");if(u==="t"||u==="kg")setUnit(u);}catch(e){}
+
+  document.getElementById("w-prev").onclick=()=>{S.week=addDays(S.week||weekStart(S.today),-7);renderWeek();};
+  document.getElementById("w-next").onclick=()=>{S.week=addDays(S.week||weekStart(S.today),7);renderWeek();};
+  document.getElementById("w-today").onclick=()=>{S.week=weekStart(S.today);renderWeek();};
+  document.getElementById("w-fill").onclick=()=>{
+    const ws=S.week||weekStart(S.today);let n=0;
+    for(let i=0;i<7;i++){
+      const d=addDays(ws,i), raw=dayRaw(d)||{}, e=eff(d);
+      for(const r of ROWS){ if(raw[r.k]===undefined||raw[r.k]===null){ writeDay(d,r.k,e[r.k]); n++; } }
+    }
+    renderWeek();renderConsole();toast(n?n+"件を計画値で入力しました":"未入力のセルはありません");
+  };
+  document.getElementById("range-sel").onchange=e=>{S.range=e.target.value.split(",").map(Number);renderChart();};
+
+  const bind=(id,fn)=>{const e=document.getElementById(id);e.addEventListener("change",async()=>{fn(e);await saveSettings();syncCfg();renderConsole();renderAll();});};
+  bind("c-yield",e=>S.settings.yieldPct=Math.max(1,parseFloat(normNum(e.value))||98.5));
+  bind("c-planprod",e=>S.settings.planProd=Math.max(0,parseFloat(normNum(e.value))||0));
+  bind("c-reserve",e=>S.settings.reserve=Math.max(0,parseFloat(normNum(e.value))||0));
+  bind("c-need-u",e=>S.settings.need.u=Math.max(0,parseFloat(normNum(e.value))||0));
+  bind("c-need-s",e=>S.settings.need.s=Math.max(0,parseFloat(normNum(e.value))||0));
+  bind("c-need-o",e=>S.settings.need.o=Math.max(0,parseFloat(normNum(e.value))||0));
+  ["c-b0","c-b1","c-b2","c-b3"].forEach((id,i)=>bind(id,e=>S.settings.bands[i]=parseFloat(normNum(e.value))||S.settings.bands[i]));
+  bind("c-autofill",e=>S.settings.autoFill=e.checked);
+  bind("c-thu",e=>S.settings.thuBoost=e.checked);
+
+  document.getElementById("s-add").onclick=async()=>{
+    const d=document.getElementById("s-date").value, q=document.getElementById("s-qty").value;
+    if(!d||q===""){toast("棚卸日と実測在庫を入力してください");return;}
+    const qty=toStore(q);
+    const before=(()=>{const keep=S.stocktakes;S.stocktakes=keep.filter(x=>x.date!==d);invalidate();
+      const t=theoAt(d);S.stocktakes=keep;invalidate();return t;})();
+    S.stocktakes=S.stocktakes.filter(x=>x.date!==d);
+    S.stocktakes.push({date:d,qty,kind:"count",memo:document.getElementById("s-memo").value.trim()});
+    await saveStocktakes();
+    document.getElementById("s-qty").value="";document.getElementById("s-memo").value="";
+    renderConsole();renderAll();
+    const adj=before===null?null:qty-before;
+    toast(adj===null? d+" の棚卸を登録しました"
+      : d+" の在庫を "+fmt(qty)+U()+" に強制補正（差異 "+(adj>=0?"+":"−")+fmt(Math.abs(adj))+U()+"）");
+  };
+  document.getElementById("s-fetch").onclick=()=>{
+    const d=document.getElementById("s-date").value;
+    if(!d){toast("棚卸日を選んでください");return;}
+    const keep=S.stocktakes;S.stocktakes=keep.filter(x=>x.date!==d);invalidate();
+    const t=theoAt(d);S.stocktakes=keep;invalidate();
+    if(t===null){toast("その日は在庫計算の範囲外です");return;}
+    document.getElementById("s-qty").value=toInput(Math.round(t));
+    previewStocktake();
+  };
+  document.getElementById("s-date").addEventListener("change",previewStocktake);
+  document.getElementById("s-qty").addEventListener("input",previewStocktake);
+  document.getElementById("csv").onclick=exportCsv;
+  document.getElementById("s-date").value=S.today;
+}
+
+function status(kind,text){
+  const d=document.getElementById("st-dot"), t=document.getElementById("st-text");
+  d.className="dot"+(kind==="ok"?"":kind==="wait"?" wait":" off");
+  t.textContent=text;
+}
+
+/* ═══ 起動 ═══ */
+wire(); syncCfg(); renderWeek(); renderConsole(); renderLegend("legend");
+
+(async()=>{
+  const db = await claude.use("db");
+  if(!db){ S.offline=true; status("off","データに接続できません。このページを新しいタブで開き直すと復帰します（現在の入力は保存されません）"); return; }
+  S.db=db; status("wait","接続中…");
+  db.doc("config/settings").onSnapshot(s=>{
+    if(s.exists){
+      const v=s.data();
+      S.settings={...DEF,...v, need:{...DEF.need,...(v.need||{})}, bands:(v.bands&&v.bands.length===4)?v.bands.slice():DEF.bands.slice()};
+      invalidate(); syncCfg(); renderConsole(); renderAll();
+    }
+  },e=>status("off","設定を読み込めません（"+(e.code||"error")+"）"));
+  db.doc("config/stocktakes").onSnapshot(s=>{
+    S.stocktakes = s.exists && Array.isArray(s.data().list) ? copy(s.data().list) : [];
+    invalidate(); renderConsole(); renderAll();
+  });
+  db.collection("months").onSnapshot(q=>{
+    const next={};
+    q.docs.forEach(d=>{const v=d.data()||{};next[d.id]=copy({days:v.days||{},notes:v.notes||{}});});
+    S.months=next; applyPending(); S.ready=true; invalidate();
+    status("ok", Object.keys(next).length+"ヶ月分のデータを同期中・自動保存");
+    renderConsole(); renderAll();
+  },e=>status("off","データを読み込めません（"+(e.code||"error")+"）"));
+})();
+</script>
+
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+</body></html>
